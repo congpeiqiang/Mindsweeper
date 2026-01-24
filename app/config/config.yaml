@@ -1,0 +1,145 @@
+# config.yaml
+# ==================== 应用配置 ====================
+app:
+  name: "Mindsweeper"
+  version: "1.0.0"
+  debug: false
+  environment: "development"
+  reload: true
+  workers: 4
+
+# ==================== 服务器配置 ====================
+server:
+  host: "0.0.0.0"
+  port: 8001
+
+# ==================== 数据库配置 ====================
+database:
+  url: "postgresql://postgres:StrongPassword!@47.120.44.223:5432/myapp_db"
+  echo: false
+  pool_size: 20
+  max_overflow: 10
+  pool_recycle: 3600
+
+# ==================== Milvus向量数据库配置 ====================
+milvus:
+  host: "47.120.44.223"
+  port: 19530
+  alias: "default"
+  collection_name: "documents"
+  collection_database: "milvus_database"
+  vector_dim: 1536
+  index_type: "IVF_FLAT"
+  metric_type: "L2"
+
+# ==================== Neo4j图数据库配置 ====================
+neo4j:
+  host: "47.120.44.223"
+  port: 7474
+  uri: "bolt://47.120.44.223:7687"
+  database: "neo4j"
+  username: "neo4j"
+  password: "cong1234#"
+  encrypted: false
+  max_connection_pool_size: 50
+  connection_timeout: 30
+  connection_acquisition_timeout: 60
+
+# ==================== Mongdb图数据库配置 ====================
+mongdb:
+  host: "47.120.44.223"
+  port: 27017
+  database: "test_db"
+  uri: "mongodb://47.120.44.223:27017/"
+
+# ==================== Redis缓存配置 ====================
+redis:
+  url: "redis://localhost:6379/0"
+  cache_ttl: 3600
+
+# ==================== MySQL数据库配置 ====================
+mysql:
+  db: chatdb
+  server: 47.120.44.223
+  port: 3306
+  username: "root"
+  password: "MySecure@123"
+  # 连接池配置（可选）
+  pool_size: 10
+
+# ==================== 文件处理配置 ====================
+file:
+  upload_dir: "./uploads"
+  max_file_size: 104857600  # 100MB
+  allowed_extensions: "pdf,csv,txt,jpg,png,jpeg"
+  temp_dir: "./uploads/temp"
+  processed_dir: "./uploads/processed"
+
+# ==================== 文本处理配置 ====================
+text:
+  chunk_size: 512
+  chunk_overlap: 256
+  min_chunk_size: 100
+
+# ==================== 嵌入模型配置 ====================
+embedding:
+  model: "qwen3-embedding:0.6b"
+  base_url: "http://localhost:11434"
+  device: "cpu"
+  batch_size: 32
+
+# ==================== OpenAI配置（可选） ====================
+openai:
+  api_key: ""
+  model: "text-embedding-3-small"
+
+# ==================== 搜索配置 ====================
+search:
+  top_k: 10
+  threshold: 0.5
+  timeout: 30
+
+# ==================== 日志配置 ====================
+logging:
+  level: "INFO"
+  file: "./logs/app.log"
+  max_bytes: 10485760  # 10MB
+  backup_count: 10
+
+# ==================== JWT认证配置 ====================
+jwt:
+  secret_key: "your_secret_key_here_change_in_production"
+  algorithm: "HS256"
+  expiration_hours: 24
+
+# ==================== CORS配置 ====================
+cors:
+  # 这个配置指定了允许访问的主机
+  allowed_hosts: ["*"]
+  # 这个配置指定了允许的源（origin），即哪些前端应用可以访问你的后端 API
+  allowed_origins: ["*"]
+  # 这个配置允许发送凭据（如 cookies、HTTP 认证等）
+  allow_credentials: true
+  # 使用 ["*"] 表示允许所有 HTTP 方法（GET、POST、PUT、DELETE 等）
+  allow_methods: ["*"]
+  # 使用 ["*"] 表示允许所有请求头
+  allow_headers: ["*"]
+
+# ==================== Celery异步任务配置 ====================
+celery:
+  broker_url: "redis://localhost:6379/1"
+  result_backend: "redis://localhost:6379/2"
+
+# ==================== 邮件配置（可选） ====================
+smtp:
+  server: ""
+  port: 587
+  user: ""
+  password: ""
+
+# ==================== AWS配置（可选） ====================
+aws:
+  access_key_id: ""
+  secret_access_key: ""
+  region: "us-east-1"
+  s3_bucket: ""
