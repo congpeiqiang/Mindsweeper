@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<diagram program="umlet" version="15.1">
+  <zoom_level>10</zoom_level>
+  <element>
+    <id>UMLPackage</id>
+    <coordinates>
+      <x>200</x>
+      <y>90</y>
+      <w>100</w>
+      <h>70</h>
+    </coordinates>
+    <panel_attributes>UI
+--
+pdf
+图片
+csv
+markdown
+网页
+网盘
+bg=blue</panel_attributes>
+    <additional_attributes/>
+  </element>
+</diagram>

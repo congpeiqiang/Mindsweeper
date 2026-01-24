@@ -1,0 +1,11 @@
+这是一个新创建项目，后台服务框架是FastAPI，项目核心功能是基于Milvus的知识库管理系统，具体功能包括，pdf、csv、图片等文件上传、检索、向量化、入库、检索，请设计项目目录结构，
+生成的帮助文档统一为中文命名，并统一放置在docs目录下。
+
+该项目的名称是Mindsweeper，并根据上述总结分析，创建相应的项目目录结构。
+
+postgresql数据库操作实体和api请求实体分开，postgresql数据库操作实体定义在app/schema目录下，api请求实体定义在app/models目录下，
+最后结合已有对项目的分析总结，实现相应代码，不需要生成新的文档.md，可以更新现有的文档.md。
+
+@d:\code_work_space\llm\huice\Issue-seven/Mindsweeper/ Mindsweeper目录下的.md文档太多，分析每个.md文档内容，合并同类型的.md文档，不需要生成新的.md文档。
+
+设计并实现pdf文件上传接口，涉及到到api、schema、service，并生成代码，输出代码实现逻辑对应的markdown帮助文档，markdown文档输出目录为api目录下面，只需要输出一个markdown文档。
