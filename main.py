@@ -35,6 +35,8 @@ async def lifespan(app: FastAPI):
         logger.info("✅ 应用启动完成")
         logger.info(f"📍 访问地址: http://{settings.HOST}:{settings.PORT}")
         logger.info(f"📚 API文档: http://{settings.HOST}:{settings.PORT}/docs")
+        logger.info(f"📚 API文档: http://{settings.HOST}:{settings.PORT}/redoc")
+        logger.info(f"📚 API文档: http://{settings.HOST}:{settings.PORT}/openapi")
         logger.info("=" * 60)
 
     except Exception as e:

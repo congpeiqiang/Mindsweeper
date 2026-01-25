@@ -7,7 +7,7 @@
 import os
 import traceback
 
-from app.core.file_processor.document_processor import DocumentManagerFactory
+from app.core.file_processor.document_processor import DocumentManagerFactory, DocumentManager
 from app.schemas.notebook.document import InsertResponse
 from app.utils.calculate_resource_hash import calculate_resource_hash
 from app.logger.logger import AppLogger
@@ -31,41 +31,46 @@ class DocumentService:
                     status="duplicated",
                     message=f"File '{file_hash_add_filename}' already exists in document storage (Status: {status}).",
                     track_id=existing_track_id,
+                    code=400,
                 )
             else:
                 return InsertResponse(
-                    status="failure",
+                    status="success",
                     message=info,
-                    track_id="",
+                    track_id=""
                 )
 
-            file_path = doc_manager.input_dir / filename
-            # Check if file already exists in file system
-            if file_path.exists():
-                return InsertResponse(
-                    status="duplicated",
-                    message=f"File '{safe_filename}' already exists in the input directory.",
-                    track_id="",
-                )
-
-            with open(file_path, "wb") as buffer:
-                shutil.copyfileobj(file.file, buffer)
-
-            track_id = generate_track_id("upload")
-
-            # Add to background tasks and get track_id
-            background_tasks.add_task(pipeline_index_file, rag, file_path, track_id)
-
-            return InsertResponse(
-                status="success",
-                message=f"File '{safe_filename}' uploaded successfully. Processing will continue in background.",
-                track_id=track_id,
-            )
+            # file_path = doc_manager.input_dir / filename
+            # # Check if file already exists in file system
+            # if file_path.exists():
+            #     return InsertResponse(
+            #         status="duplicated",
+            #         message=f"File '{safe_filename}' already exists in the input directory.",
+            #         track_id="",
+            #     )
+            #
+            # with open(file_path, "wb") as buffer:
+            #     shutil.copyfileobj(file.file, buffer)
+            #
+            # track_id = generate_track_id("upload")
+            #
+            # # Add to background tasks and get track_id
+            # background_tasks.add_task(pipeline_index_file, rag, file_path, track_id)
+            #
+            # return InsertResponse(
+            #     status="success",
+            #     message=f"File '{safe_filename}' uploaded successfully. Processing will continue in background.",
+            #     track_id=track_id,
+            # )
 
         except Exception as e:
-            logger.error(f"Error /documents/upload: {file.filename}: {str(e)}")
-            logger.error(traceback.format_exc())
-            raise HTTPException(status_code=500, detail=str(e))
+            logger.error(f"Error /documents/upload: {traceback.format_exc()}")
+            return InsertResponse(
+                status="failure",
+                message=traceback.format_exc(),
+                track_id="",
+                code=400,
+            )
 
     @classmethod
     async def find_by_file_from_local(cls, file_hash_add_filename, file_content):
@@ -85,30 +90,17 @@ class DocumentService:
             )
 
     @classmethod
-    async def is_supported_file(cls, filename: str) -> InsertResponse:
-        doc_manager = None
-        # 初始化documents处理器实例
-        try:
-            doc_manager = DocumentManagerFactory.get_document_instance()
-        except Exception as e:
-            error_info = traceback.format_exc()
-            error_info_ = f"初始化documents处理器实例 异常: {error_info}"
-            logger.error(error_info_)
-            return InsertResponse(
-                status="failure",
-                message=error_info_,
-                track_id="",
-            )
-        result, supported_extensions = doc_manager.is_supported_file(filename)
+    async def is_supported_file(cls, doc_manager: DocumentManager,  filename: str) -> InsertResponse:
+        result, supported_extensions = await doc_manager.is_supported_file(filename)
         if result:
             return InsertResponse(
-                status="failure",
-                message=f"不支持的文件类型{filename.lower()},支持的文件类型列表为{supported_extensions}",
-                track_id="",
+                status="success",
+                message=f"支持的文件类型{filename.lower()},支持的文件类型列表为{supported_extensions}",
+                track_id=""
             )
         else:
             return InsertResponse(
-                    status="success",
-                    message=f"支持的文件类型{filename.lower()},支持的文件类型列表为{supported_extensions}",
+                    status="failure",
+                    message=f"不支持的文件类型{filename.lower()},支持的文件类型列表为{supported_extensions}",
                     track_id="",
                 )

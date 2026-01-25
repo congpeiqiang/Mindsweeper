@@ -20,8 +20,8 @@ def example_usage():
     config = MongoDBConfig(
         host="localhost",
         port=27017,
-        username="admin",
-        password="password",
+        # username="admin",
+        # password="password",
         database="test_db",
         max_pool_size=50
     )
@@ -29,9 +29,12 @@ def example_usage():
     # 3. 创建管理器
     manager = factory.create_manager(config, "test_manager")
 
-    # 4. 创建索引
+    print(manager.connection.get_database())
+    print(manager.connection.get_collection("users"))
+
+    # # 4. 创建索引
     manager.create_index("users", [("email", 1)], unique=True)
-    manager.create_index("users", [("name", 1)])
+    # manager.create_index("users", [("name", 1)])
 
     # 5. 插入数据
     user_data = {
@@ -123,4 +126,4 @@ def multiple_databases_example():
 
 if __name__ == "__main__":
     example_usage()
-    multiple_databases_example()
+    # multiple_databases_example()

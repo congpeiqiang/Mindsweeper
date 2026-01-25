@@ -7,6 +7,7 @@
 from typing import Any, Optional, Dict, Generic, TypeVar
 from datetime import datetime
 from pydantic import BaseModel, Field
+from starlette.responses import JSONResponse
 
 T = TypeVar('T')
 
@@ -32,6 +33,13 @@ class ApiResponse(BaseModel, Generic[T]):
             }
         }
 
+def api_response(message: str, data: dict = None, code=200):
+    return ApiResponse(
+        code=code,
+        message=message,
+        data=data,
+        timestamp=datetime.now()
+    )
 
 class ResponseBuilder:
     """
@@ -41,18 +49,14 @@ class ResponseBuilder:
     """
     
     @staticmethod
-    def success(
-        data: Any = None,
-        message: str = "success",
-        code: int = 200
-    ) -> Dict[str, Any]:
+    async def success(
+        data: Any = None
+    ) -> JSONResponse:
         """
         构建成功响应
         
         Args:
-            data: 响应数据
-            message: 响应消息
-            code: HTTP 状态码
+            :param data: 响应数据
             
         Returns:
             标准化的成功响应字典
@@ -66,29 +70,41 @@ class ResponseBuilder:
                 "timestamp": "2024-01-01T00:00:00Z"
             }
         """
-        return {
-            "code": code,
-            "message": message,
-            "data": data,
-            "timestamp": datetime.utcnow().isoformat()
-        }
-    
+        if data and not isinstance(data, dict):
+            data = data.model_dump()
+        return JSONResponse(
+            status_code=200,
+            content=data
+        )
+
     @staticmethod
-    def created(
-        data: Any = None,
-        message: str = "created"
-    ) -> Dict[str, Any]:
+    async def fail(  # 定义一个名为fail的函数，虽然函数名与功能不太匹配，实际是构建成功响应
+            data: Any = None,  # 参数：响应数据，类型为Any，默认值为None
+            code: int = 400  # 参数：HTTP状态码，类型为int，默认值为400
+    ) -> JSONResponse:  # 函数返回类型为JSONResponse
         """
-        构建创建成功响应 (200)
+        构建成功响应
         
         Args:
-            data: 创建的资源数据
-            message: 响应消息
-            
+            :param data: 响应数据
+            :param code: 状态码
         Returns:
-            标准化的创建成功响应字典
-        """
-        return ResponseBuilder.success(data=data, message=message, code=200)
+            标准化的成功响应字典
+            
+        Example:
+            >>> ResponseBuilder.fail(data={"id": 1}, message="创建失败")
+            {
+                "code": 400,
+                "message": "创建失败",
+                "data": {"id": 1},
+                "timestamp": "2024-01-01T00:00:00Z"
+            }
+            """
+        if data and not isinstance(data, dict):
+            data = data.model_dump()
+        return JSONResponse(
+            status_code=code,
+            content=data)
     
     @staticmethod
     def accepted(

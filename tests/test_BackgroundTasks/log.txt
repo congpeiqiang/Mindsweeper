@@ -1,0 +1,8 @@
+开始处理数据: {'additionalProp1': {}}
+开始处理数据: {'additionalProp1': {}}
+开始处理数据: {'additionalProp1': {'a': 1}}
+开始处理数据: {'additionalProp1': {'a': 1}}
+开始处理数据: {'additionalProp1': {'a': 1}}
+开始处理数据: {'additionalProp1': {'a': 1}}
+开始处理数据: {'additionalProp1': {'a': 1}}
+开始处理数据: {'additionalProp1': {}}

@@ -27,6 +27,7 @@ class InsertResponse(BaseModel):
     )
     message: str = Field(description="Message describing the operation result")
     track_id: str = Field(description="Tracking ID for monitoring processing status")
+    code:int = Field(description="状态码", default=200)
 
     class Config:
         json_schema_extra = {

@@ -47,7 +47,8 @@ class MongoDBManagerFactory:
 
         # 创建连接
         connection = MongoDBConnection(config)
-        if not connection.connect():
+        connection_result = connection.connect()
+        if not connection_result:
             raise ConnectionError(f"无法为管理器'{manager_name}'创建MongoDB连接")
 
         # 创建管理器

@@ -40,7 +40,7 @@ class MongoDBConfig:
     username: str = ""
     password: str = ""
     database: str = "default_db"
-    auth_source: str = "admin"
+    auth_source: str = ""
     max_pool_size: int = 100
     min_pool_size: int = 10
     timeout_ms: int = 5000
@@ -105,13 +105,13 @@ class MongoDBConnection:
 
     def get_database(self) -> Optional[Database]:
         """获取数据库实例"""
-        if self.is_connected and self._database:
+        if self.is_connected and self._database is not None:
             return self._database
         return None
 
     def get_collection(self, collection_name: str) -> Optional[Collection]:
         """获取集合实例"""
-        if self.is_connected and self._database:
+        if self.is_connected and self._database is not None:
             return self._database[collection_name]
         return None
 
@@ -178,7 +178,7 @@ class MongoDBManager:
             self._ensure_connection()
             collection = self.connection.get_collection(collection_name)
 
-            if not collection:
+            if collection is None:
                 return None
 
             result = collection.insert_one(document)
@@ -233,7 +233,7 @@ class MongoDBManager:
             self._ensure_connection()
             collection = self.connection.get_collection(collection_name)
 
-            if not collection:
+            if collection is None:
                 return None
 
             query = query or {}
@@ -271,7 +271,7 @@ class MongoDBManager:
             self._ensure_connection()
             collection = self.connection.get_collection(collection_name)
 
-            if not collection:
+            if collection is  None:
                 return []
 
             query = query or {}
@@ -311,7 +311,7 @@ class MongoDBManager:
             self._ensure_connection()
             collection = self.connection.get_collection(collection_name)
 
-            if not collection:
+            if collection is None:
                 return None
 
             result = collection.update_one(query, update, upsert=upsert)
@@ -346,7 +346,7 @@ class MongoDBManager:
             self._ensure_connection()
             collection = self.connection.get_collection(collection_name)
 
-            if not collection:
+            if collection is None:
                 return None
 
             result = collection.update_many(query, update, upsert=upsert)
@@ -391,7 +391,7 @@ class MongoDBManager:
             self._ensure_connection()
             collection = self.connection.get_collection(collection_name)
 
-            if not collection or not operations:
+            if collection is None or operations is None:
                 return None
 
             # 执行批量操作
@@ -439,7 +439,7 @@ class MongoDBManager:
             self._ensure_connection()
             collection = self.connection.get_collection(collection_name)
 
-            if not collection:
+            if collection is None:
                 return None
 
             result = collection.delete_one(query)
@@ -464,7 +464,7 @@ class MongoDBManager:
             self._ensure_connection()
             collection = self.connection.get_collection(collection_name)
 
-            if not collection:
+            if collection is None:
                 return None
 
             result = collection.delete_many(query)
@@ -490,7 +490,7 @@ class MongoDBManager:
             self._ensure_connection()
             collection = self.connection.get_collection(collection_name)
 
-            if not collection:
+            if collection is None:
                 return []
 
             cursor = collection.aggregate(pipeline)
@@ -517,7 +517,7 @@ class MongoDBManager:
             self._ensure_connection()
             collection = self.connection.get_collection(collection_name)
 
-            if not collection:
+            if collection is None:
                 return 0
 
             query = query or {}
@@ -545,7 +545,7 @@ class MongoDBManager:
             self._ensure_connection()
             collection = self.connection.get_collection(collection_name)
 
-            if not collection:
+            if collection is None:
                 return None
 
             return collection.create_index(keys, **kwargs)
@@ -568,7 +568,7 @@ class MongoDBManager:
             self._ensure_connection()
             database = self.connection.get_database()
 
-            if not database:
+            if database is None:
                 return False
 
             collection = database[collection_name]
