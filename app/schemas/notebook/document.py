@@ -26,7 +26,8 @@ class InsertResponse(BaseModel):
         description="Status of the operation"
     )
     message: str = Field(description="Message describing the operation result")
-    track_id: str = Field(description="Tracking ID for monitoring processing status")
+    # track_id: str = Field(description="Tracking ID for monitoring processing status")
+    file_id: str = Field(description="文件id")
     code:int = Field(description="状态码", default=200)
 
     class Config:

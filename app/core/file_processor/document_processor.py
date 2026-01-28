@@ -222,7 +222,10 @@ class DocumentManager(MongoDBManager):
     async def find_by_file_hash(self, collection_name, file_hash: str, projection: Optional[Dict] = None) -> Tuple[Optional[Dict],str]:
         """按文件哈希查询（用于去重）"""
         try:
-            doc = super().find_one(collection_name, {"metadata.file_hash": file_hash}, projection)
+            if projection:
+                doc = super().find_one(collection_name, {"file_id": file_hash}, projection)
+            else:
+                doc = super().find_one(collection_name, {"file_id": file_hash})
             return doc, ""
         except Exception as e:
             error_info = traceback.format_exc()

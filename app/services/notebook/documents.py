@@ -26,18 +26,17 @@ class DocumentService:
                 # Get document status and track_id from existing document
                 status = existing_doc_data.get("status", "unknown")
                 # Use `or ""` to handle both missing key and None value (e.g., legacy rows without track_id)
-                existing_track_id = existing_doc_data.get("track_id") or ""
                 return InsertResponse(
                     status="duplicated",
                     message=f"File '{file_hash_add_filename}' already exists in document storage (Status: {status}).",
-                    track_id=existing_track_id,
+                    file_id=file_hash_add_filename,
                     code=400,
                 )
             else:
                 return InsertResponse(
                     status="success",
                     message=info,
-                    track_id=""
+                    file_id=""
                 )
 
             # file_path = doc_manager.input_dir / filename
@@ -46,7 +45,7 @@ class DocumentService:
             #     return InsertResponse(
             #         status="duplicated",
             #         message=f"File '{safe_filename}' already exists in the input directory.",
-            #         track_id="",
+            #         file_id="",
             #     )
             #
             # with open(file_path, "wb") as buffer:
@@ -60,7 +59,7 @@ class DocumentService:
             # return InsertResponse(
             #     status="success",
             #     message=f"File '{safe_filename}' uploaded successfully. Processing will continue in background.",
-            #     track_id=track_id,
+            #     file_id=track_id,
             # )
 
         except Exception as e:
@@ -68,7 +67,7 @@ class DocumentService:
             return InsertResponse(
                 status="failure",
                 message=traceback.format_exc(),
-                track_id="",
+                file_id="",
                 code=400,
             )
 
@@ -80,13 +79,13 @@ class DocumentService:
             return InsertResponse(
                 status="duplicated",
                 message=f"存在相同文件: {file_save_path}",
-                track_id="",
+                file_id="",
             )
         else:
             return InsertResponse(
                 status="success",
                 message="",
-                track_id=""
+                file_id=""
             )
 
     @classmethod
@@ -96,11 +95,11 @@ class DocumentService:
             return InsertResponse(
                 status="success",
                 message=f"支持的文件类型{filename.lower()},支持的文件类型列表为{supported_extensions}",
-                track_id=""
+                file_id=""
             )
         else:
             return InsertResponse(
                     status="failure",
                     message=f"不支持的文件类型{filename.lower()},支持的文件类型列表为{supported_extensions}",
-                    track_id="",
+                    file_id="",
                 )

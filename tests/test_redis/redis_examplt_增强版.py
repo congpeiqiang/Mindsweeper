@@ -64,7 +64,7 @@ async def basic_crud_example():
 
         # 模拟用户添加更多标签
         new_tags = ["Docker", "Kubernetes", "Python"]  # Python已存在
-        added_count = await redis_client.sadd(tags_key, *new_tags)
+        added_count = await redis_client.sadd(tags_key, *new_tags) # 返回实际添加个数(去重后)
         tag_count = await redis_client.scard(tags_key)
         print(f"添加新标签后，实际添加 {added_count} 个（去重后）")
         print(f"当前标签数量: {tag_count}")
@@ -115,7 +115,7 @@ async def basic_crud_example():
         # 示例2: 使用模式匹配扫描
         print("\n扫描所有用户键 (user:*):")
         user_keys = []
-        async for key in redis_client.scan_iter("user:*"):
+        async for key in redis_client.scan_iter("user:1001:*"):
             user_keys.append(key)
             value = await redis_client.get(key)
             print(f"  {key} = {value}")
