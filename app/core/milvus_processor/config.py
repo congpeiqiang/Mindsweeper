@@ -16,37 +16,34 @@ import os
 
 @dataclass
 class MilvusConfig:
-    """Milvus配置类"""
+    def __init__(self, milvus_uri: str, ollama_uri: str, timeout: int, default_db: str, default_collection: str, enable_dynamic_field: bool,
+                 chunk_size: int, chunk_overlap: int, batch_size: int, embedding_model: str, embedding_dim: int, default_search_limit: int, bm25_k1: int, bm25_b: int):
+        """Milvus配置类"""
+        # 服务器配置
+        self.milvus_uri: str = milvus_uri
+        self.ollama_uri: str = ollama_uri
+        self.timeout: float = timeout
 
-    # 服务器配置
-    milvus_uri: str = "http://localhost:19530"
-    ollama_uri: str = "http://localhost:11434"
-    timeout: float = 30.0
+        # 数据库配置
+        self.default_db: str = default_db
 
-    # 数据库配置
-    default_db: str = "milvus_database"
+        # 集合配置
+        self.default_collection: str = default_collection
+        self.enable_dynamic_field: bool = enable_dynamic_field
 
-    # 集合配置
-    default_collection: str = "default_collection"
-    enable_dynamic_field: bool = True
+        # 数据分块配置
+        self.chunk_size: int = chunk_size
+        self.chunk_overlap: int = chunk_overlap
+        self.batch_size: int = batch_size
 
-    # 数据分块配置
-    chunk_size: int = 800
-    chunk_overlap: int = 100
-    batch_size: int = 50
+        # 嵌入模型配置
+        self.embedding_model: str = embedding_model
+        self.embedding_dim: int = embedding_dim
 
-    # 嵌入模型配置
-    embedding_model: str = "qwen3-embedding:0.6b"
-    embedding_dim: int = 1024
-
-    # 搜索配置
-    default_search_limit: int = 10
-    bm25_k1: float = 1.2
-    bm25_b: float = 0.75
-
-    # 日志配置
-    log_level: str = "INFO"
-    log_format: str = '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+        # 搜索配置
+        self.default_search_limit: int = default_search_limit
+        self.bm25_k1: float = bm25_k1
+        self.bm25_b: float = bm25_b
 
     def validate(self) -> bool:
         """验证配置"""

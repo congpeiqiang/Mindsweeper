@@ -8,6 +8,7 @@
 Milvus向量数据库管理器
 整合了数据库、集合、数据插入和搜索的完整功能
 """
+import os
 
 from pymilvus import MilvusClient, DataType, Function, FunctionType
 from langchain_ollama import OllamaEmbeddings
@@ -19,6 +20,9 @@ import random
 from tqdm import tqdm
 from datetime import datetime
 
+from app.logger.logger import AppLogger
+
+logger = AppLogger(name=os.path.basename(__file__), log_dir="logs", log_name="log.log").get_logger()
 
 class MilvusManager:
     """Milvus向量数据库管理器"""
@@ -49,16 +53,13 @@ class MilvusManager:
         self.milvus_client = None
         self.embeddings = None
 
-        # 配置日志
-        self._setup_logging()
-
     def _setup_logging(self):
         """配置日志"""
         logging.basicConfig(
             level=logging.INFO,
             format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
         )
-        self.logger = logging.getLogger(__name__)
+        logger = logging.getLogger(__name__)
 
     def initialize(self, db_name: Optional[str] = None) -> bool:
         """
@@ -71,10 +72,10 @@ class MilvusManager:
             bool: 初始化是否成功
         """
         try:
-            self.logger.info("初始化Milvus管理器...")
+            logger.info("初始化Milvus管理器...")
 
             # 初始化嵌入模型
-            self.logger.info(f"连接Ollama嵌入模型: {self.ollama_uri}")
+            logger.info(f"连接Ollama嵌入模型: {self.ollama_uri}")
             self.embeddings = OllamaEmbeddings(
                 model="qwen3-embedding:0.6b",
                 base_url=self.ollama_uri
@@ -82,7 +83,7 @@ class MilvusManager:
 
             # 初始化Milvus客户端
             db_to_use = db_name or self.default_db
-            self.logger.info(f"连接Milvus: {self.milvus_uri}, 数据库: {db_to_use}")
+            logger.info(f"连接Milvus: {self.milvus_uri}, 数据库: {db_to_use}")
 
             self.milvus_client = MilvusClient(
                 uri=self.milvus_uri,
@@ -93,14 +94,14 @@ class MilvusManager:
             # 测试连接
             try:
                 collections = self.milvus_client.list_collections()
-                self.logger.info(f"连接成功！当前集合数量: {len(collections)}")
+                logger.info(f"连接成功！当前集合数量: {len(collections)}")
                 return True
             except Exception as e:
-                self.logger.warning(f"连接测试失败，可能数据库不存在: {e}")
+                logger.warning(f"连接测试失败，可能数据库不存在: {e}")
                 return False
 
         except Exception as e:
-            self.logger.error(f"初始化失败: {e}")
+            logger.error(f"初始化失败: {e}")
             return False
 
     # ==================== 数据库管理 ====================
@@ -135,23 +136,23 @@ class MilvusManager:
             if check_exists:
                 existing_dbs = client.list_databases()
                 if db_name in existing_dbs:
-                    self.logger.warning(f"数据库 '{db_name}' 已存在")
+                    logger.warning(f"数据库 '{db_name}' 已存在")
                     return True
 
             # 创建数据库
             client.create_database(db_name=db_name)
-            self.logger.info(f"数据库 '{db_name}' 创建成功")
+            logger.info(f"数据库 '{db_name}' 创建成功")
 
             # 验证创建
             updated_dbs = client.list_databases()
             if db_name not in updated_dbs:
                 raise RuntimeError(f"数据库 '{db_name}' 创建失败")
 
-            self.logger.info(f"当前数据库列表: {updated_dbs}")
+            logger.info(f"当前数据库列表: {updated_dbs}")
             return True
 
         except Exception as e:
-            self.logger.error(f"创建数据库失败: {e}")
+            logger.error(f"创建数据库失败: {e}")
             return False
 
     def list_databases(self) -> Optional[List[str]]:
@@ -164,10 +165,10 @@ class MilvusManager:
         try:
             client = MilvusClient(uri=self.milvus_uri, timeout=self.timeout)
             databases = client.list_databases()
-            self.logger.info(f"数据库列表: {databases}")
+            logger.info(f"数据库列表: {databases}")
             return databases
         except Exception as e:
-            self.logger.error(f"列出数据库失败: {e}")
+            logger.error(f"列出数据库失败: {e}")
             return None
 
     def database_exists(self, db_name: str) -> bool:
@@ -186,7 +187,7 @@ class MilvusManager:
                 return False
             return db_name in databases
         except Exception as e:
-            self.logger.error(f"检查数据库存在性失败: {e}")
+            logger.error(f"检查数据库存在性失败: {e}")
             return False
 
     def delete_database(self, db_name: str,
@@ -205,7 +206,7 @@ class MilvusManager:
             # 检查数据库是否存在
             if not self.database_exists(db_name):
                 if force:
-                    self.logger.warning(f"数据库 '{db_name}' 不存在，无需删除")
+                    logger.warning(f"数据库 '{db_name}' 不存在，无需删除")
                     return True
                 else:
                     raise ValueError(f"数据库 '{db_name}' 不存在")
@@ -213,11 +214,11 @@ class MilvusManager:
             # 删除数据库
             client = MilvusClient(uri=self.milvus_uri, timeout=self.timeout)
             client.drop_database(db_name=db_name)
-            self.logger.info(f"数据库 '{db_name}' 删除成功")
+            logger.info(f"数据库 '{db_name}' 删除成功")
             return True
 
         except Exception as e:
-            self.logger.error(f"删除数据库失败: {e}")
+            logger.error(f"删除数据库失败: {e}")
             return False
 
     # ==================== 集合管理 ====================
@@ -234,7 +235,7 @@ class MilvusManager:
             Optional[Any]: Schema对象，失败时返回None
         """
         try:
-            self.logger.info("创建集合Schema...")
+            logger.info("创建集合Schema...")
 
             # 创建Schema
             schema = self.milvus_client.create_schema(
@@ -344,11 +345,11 @@ class MilvusManager:
                 description="分类"
             )
 
-            self.logger.info("Schema创建成功")
+            logger.info("Schema创建成功")
             return schema
 
         except Exception as e:
-            self.logger.error(f"创建Schema失败: {e}")
+            logger.error(f"创建Schema失败: {e}")
             return None
 
     def add_bm25_functions(self, schema: Any) -> bool:
@@ -362,7 +363,7 @@ class MilvusManager:
             bool: 操作是否成功
         """
         try:
-            self.logger.info("添加BM25函数...")
+            logger.info("添加BM25函数...")
 
             # 标题BM25函数
             title_bm25_function = Function(
@@ -384,11 +385,11 @@ class MilvusManager:
             schema.add_function(title_bm25_function)
             schema.add_function(content_bm25_function)
 
-            self.logger.info("BM25函数添加成功")
+            logger.info("BM25函数添加成功")
             return True
 
         except Exception as e:
-            self.logger.error(f"添加BM25函数失败: {e}")
+            logger.error(f"添加BM25函数失败: {e}")
             return False
 
     def create_index_params(self) -> Optional[Any]:
@@ -399,7 +400,7 @@ class MilvusManager:
             Optional[Any]: 索引参数对象，失败时返回None
         """
         try:
-            self.logger.info("创建索引参数...")
+            logger.info("创建索引参数...")
 
             index_params = self.milvus_client.prepare_index_params()
 
@@ -446,11 +447,11 @@ class MilvusManager:
                 metric_type="COSINE"
             )
 
-            self.logger.info("索引参数创建成功")
+            logger.info("索引参数创建成功")
             return index_params
 
         except Exception as e:
-            self.logger.error(f"创建索引参数失败: {e}")
+            logger.error(f"创建索引参数失败: {e}")
             return None
 
     def create_collection(self,
@@ -475,7 +476,7 @@ class MilvusManager:
             bool: 操作是否成功
         """
         try:
-            self.logger.info(f"创建集合: {collection_name}")
+            logger.info(f"创建集合: {collection_name}")
 
             # 验证集合名称
             if not collection_name or not isinstance(collection_name, str):
@@ -484,12 +485,12 @@ class MilvusManager:
             # 检查集合是否已存在
             if self.milvus_client.has_collection(collection_name):
                 if drop_existing:
-                    self.logger.warning(f"集合 '{collection_name}' 已存在，正在删除...")
+                    logger.warning(f"集合 '{collection_name}' 已存在，正在删除...")
                     self.milvus_client.drop_collection(collection_name)
-                    self.logger.info(f"集合 '{collection_name}' 删除成功")
+                    logger.info(f"集合 '{collection_name}' 删除成功")
                     time.sleep(2)  # 等待删除完成
                 else:
-                    self.logger.warning(f"集合 '{collection_name}' 已存在，跳过创建")
+                    logger.warning(f"集合 '{collection_name}' 已存在，跳过创建")
                     return True
 
             # 创建Schema（如果需要）
@@ -515,7 +516,7 @@ class MilvusManager:
                 index_params=index_params
             )
 
-            self.logger.info(f"集合 '{collection_name}' 创建成功")
+            logger.info(f"集合 '{collection_name}' 创建成功")
 
             # 等待集合加载
             if wait_for_load:
@@ -524,7 +525,7 @@ class MilvusManager:
             return True
 
         except Exception as e:
-            self.logger.error(f"创建集合失败: {e}")
+            logger.error(f"创建集合失败: {e}")
             return False
 
     def wait_for_collection_load(self,
@@ -541,7 +542,7 @@ class MilvusManager:
             bool: 是否加载成功
         """
         try:
-            self.logger.info(f"等待集合 '{collection_name}' 加载...")
+            logger.info(f"等待集合 '{collection_name}' 加载...")
             start_time = time.time()
 
             while time.time() - start_time < timeout:
@@ -553,24 +554,24 @@ class MilvusManager:
                     state_name = load_state['state'].name
 
                     if state_name == 'Loaded':
-                        self.logger.info("集合加载完成")
+                        logger.info("集合加载完成")
                         return True
                     elif state_name == 'Loading':
-                        self.logger.info("集合正在加载中...")
+                        logger.info("集合正在加载中...")
                         time.sleep(2)
                     else:
-                        self.logger.warning(f"集合状态异常: {state_name}")
+                        logger.warning(f"集合状态异常: {state_name}")
                         time.sleep(2)
 
                 except Exception as e:
-                    self.logger.warning(f"获取加载状态失败: {e}")
+                    logger.warning(f"获取加载状态失败: {e}")
                     time.sleep(2)
 
-            self.logger.warning(f"集合加载超时（{timeout}秒）")
+            logger.warning(f"集合加载超时（{timeout}秒）")
             return False
 
         except Exception as e:
-            self.logger.error(f"等待集合加载失败: {e}")
+            logger.error(f"等待集合加载失败: {e}")
             return False
 
     def list_collections(self) -> Optional[List[str]]:
@@ -582,10 +583,10 @@ class MilvusManager:
         """
         try:
             collections = self.milvus_client.list_collections()
-            self.logger.info(f"集合列表: {collections}")
+            logger.info(f"集合列表: {collections}")
             return collections
         except Exception as e:
-            self.logger.error(f"列出集合失败: {e}")
+            logger.error(f"列出集合失败: {e}")
             return None
 
     def collection_exists(self, collection_name: str) -> bool:
@@ -601,7 +602,7 @@ class MilvusManager:
         try:
             return self.milvus_client.has_collection(collection_name)
         except Exception as e:
-            self.logger.error(f"检查集合存在性失败: {e}")
+            logger.error(f"检查集合存在性失败: {e}")
             return False
 
     def get_collection_info(self, collection_name: str) -> Optional[Dict[str, Any]]:
@@ -616,7 +617,7 @@ class MilvusManager:
         """
         try:
             if not self.collection_exists(collection_name):
-                self.logger.error(f"集合 '{collection_name}' 不存在")
+                logger.error(f"集合 '{collection_name}' 不存在")
                 return None
 
             # 获取加载状态
@@ -635,7 +636,7 @@ class MilvusManager:
                     collection_name=collection_name
                 )
             except Exception as e:
-                self.logger.warning(f"获取集合统计失败: {e}")
+                logger.warning(f"获取集合统计失败: {e}")
                 stats = None
 
             info = {
@@ -646,11 +647,11 @@ class MilvusManager:
                 "exists": True
             }
 
-            self.logger.info(f"集合 '{collection_name}' 信息获取成功")
+            logger.info(f"集合 '{collection_name}' 信息获取成功")
             return info
 
         except Exception as e:
-            self.logger.error(f"获取集合信息失败: {e}")
+            logger.error(f"获取集合信息失败: {e}")
             return None
 
     def delete_collection(self, collection_name: str,
@@ -669,18 +670,18 @@ class MilvusManager:
             # 检查集合是否存在
             if not self.collection_exists(collection_name):
                 if force:
-                    self.logger.warning(f"集合 '{collection_name}' 不存在，无需删除")
+                    logger.warning(f"集合 '{collection_name}' 不存在，无需删除")
                     return True
                 else:
                     raise ValueError(f"集合 '{collection_name}' 不存在")
 
             # 删除集合
             self.milvus_client.drop_collection(collection_name)
-            self.logger.info(f"集合 '{collection_name}' 删除成功")
+            logger.info(f"集合 '{collection_name}' 删除成功")
             return True
 
         except Exception as e:
-            self.logger.error(f"删除集合失败: {e}")
+            logger.error(f"删除集合失败: {e}")
             return False
 
     # ==================== 数据管理 ====================
@@ -699,25 +700,25 @@ class MilvusManager:
             List[float]: 嵌入向量
         """
         if not text or not isinstance(text, str):
-            self.logger.warning("输入文本为空或非字符串，返回零向量")
+            logger.warning("输入文本为空或非字符串，返回零向量")
             return [0.0] * 1024  # 默认维度
 
         for attempt in range(max_retries):
             try:
-                self.logger.info(f"生成嵌入向量 (尝试 {attempt + 1}/{max_retries})")
+                logger.info(f"生成嵌入向量 (尝试 {attempt + 1}/{max_retries})")
                 embedding = self.embeddings.embed_query(text)
-                self.logger.info(f"生成 {len(embedding)} 维向量")
+                logger.info(f"生成 {len(embedding)} 维向量")
                 return embedding
 
             except Exception as e:
-                self.logger.warning(f"生成嵌入向量失败 (尝试 {attempt + 1}/{max_retries}): {e}")
+                logger.warning(f"生成嵌入向量失败 (尝试 {attempt + 1}/{max_retries}): {e}")
 
                 if attempt < max_retries - 1:
                     wait_time = (2 ** attempt) + random.uniform(0, 1)
-                    self.logger.info(f"等待 {wait_time:.2f} 秒后重试...")
+                    logger.info(f"等待 {wait_time:.2f} 秒后重试...")
                     time.sleep(wait_time)
                 else:
-                    self.logger.error("生成嵌入向量最终失败，返回随机向量")
+                    logger.error("生成嵌入向量最终失败，返回随机向量")
                     return [random.random() for _ in range(1024)]
 
     def chunk_text(self,
@@ -737,7 +738,7 @@ class MilvusManager:
         """
         try:
             if not text or not isinstance(text, str):
-                self.logger.warning("输入文本为空或非字符串")
+                logger.warning("输入文本为空或非字符串")
                 return []
 
             if chunk_size <= 0:
@@ -747,7 +748,7 @@ class MilvusManager:
                 raise ValueError("overlap不能为负数")
 
             if overlap >= chunk_size:
-                self.logger.warning("overlap过大，调整为chunk_size的一半")
+                logger.warning("overlap过大，调整为chunk_size的一半")
                 overlap = chunk_size // 2
 
             # 如果文本长度小于等于chunk_size，直接返回
@@ -788,11 +789,11 @@ class MilvusManager:
                 if start >= len(text):
                     break
 
-            self.logger.info(f"文本分割完成，共生成 {len(chunks)} 个块")
+            logger.info(f"文本分割完成，共生成 {len(chunks)} 个块")
             return chunks
 
         except Exception as e:
-            self.logger.error(f"文本分块失败: {e}")
+            logger.error(f"文本分块失败: {e}")
             return [text] if text else []
 
     def validate_document(self, doc: Dict[str, Any]) -> Tuple[bool, List[str]]:
@@ -850,7 +851,7 @@ class MilvusManager:
             # 验证文档
             is_valid, errors = self.validate_document(doc)
             if not is_valid:
-                self.logger.error(f"文档验证失败: {errors}")
+                logger.error(f"文档验证失败: {errors}")
                 return []
 
             # 分块
@@ -861,7 +862,7 @@ class MilvusManager:
             )
 
             if not content_chunks:
-                self.logger.warning("文档分割后无有效块")
+                logger.warning("文档分割后无有效块")
                 return []
 
             chunks_data = []
@@ -894,11 +895,11 @@ class MilvusManager:
 
                 chunks_data.append(chunk_data)
 
-            self.logger.info(f"文档 '{doc['doc_id']}' 分割为 {len(chunks_data)} 个块")
+            logger.info(f"文档 '{doc['doc_id']}' 分割为 {len(chunks_data)} 个块")
             return chunks_data
 
         except Exception as e:
-            self.logger.error(f"准备文档分块失败: {e}")
+            logger.error(f"准备文档分块失败: {e}")
             return []
 
     def insert_documents(self,
@@ -928,7 +929,7 @@ class MilvusManager:
                 raise ValueError("集合名称不能为空")
 
             if not documents or not isinstance(documents, list):
-                self.logger.warning("没有文档需要插入")
+                logger.warning("没有文档需要插入")
                 return {"success": True, "message": "没有文档需要插入"}
 
             # 检查集合是否存在
@@ -945,7 +946,7 @@ class MilvusManager:
                 "document_stats": {}
             }
 
-            self.logger.info(f"开始处理 {len(documents)} 个文档...")
+            logger.info(f"开始处理 {len(documents)} 个文档...")
 
             # 处理文档
             doc_iter = tqdm(documents, desc="处理文档") if show_progress else documents
@@ -971,7 +972,7 @@ class MilvusManager:
                         })
 
                 except Exception as e:
-                    self.logger.error(f"处理文档 {doc_idx} 失败: {e}")
+                    logger.error(f"处理文档 {doc_idx} 失败: {e}")
                     stats["invalid_documents"].append({
                         "index": doc_idx,
                         "doc_id": doc.get('doc_id', f'doc_{doc_idx}'),
@@ -981,7 +982,7 @@ class MilvusManager:
             stats["total_chunks"] = len(all_chunks)
 
             if not all_chunks:
-                self.logger.error("没有有效的文档块需要插入")
+                logger.error("没有有效的文档块需要插入")
                 return {
                     **stats,
                     "inserted_chunks": 0,
@@ -991,7 +992,7 @@ class MilvusManager:
                 }
 
             # 批量插入
-            self.logger.info(f"开始批量插入 {len(all_chunks)} 个文档块...")
+            logger.info(f"开始批量插入 {len(all_chunks)} 个文档块...")
 
             inserted_count = 0
             failed_batches = []
@@ -1009,10 +1010,10 @@ class MilvusManager:
                         data=batch_data
                     )
                     inserted_count += len(batch_data)
-                    self.logger.debug(f"批次 {batch_num}: 成功插入 {len(batch_data)} 个块")
+                    logger.debug(f"批次 {batch_num}: 成功插入 {len(batch_data)} 个块")
 
                 except Exception as e:
-                    self.logger.error(f"批次 {batch_num} 插入失败: {e}")
+                    logger.error(f"批次 {batch_num} 插入失败: {e}")
                     failed_batches.append(batch_num)
                     stats["failed_chunks"] += len(batch_data)
 
@@ -1026,20 +1027,20 @@ class MilvusManager:
             }
 
             # 输出统计信息
-            self.logger.info("=" * 50)
-            self.logger.info("插入统计:")
-            self.logger.info(f"  文档总数: {stats['total_documents']}")
-            self.logger.info(f"  有效文档: {stats['valid_documents']}")
-            self.logger.info(f"  无效文档: {len(stats['invalid_documents'])}")
-            self.logger.info(f"  总块数: {stats['total_chunks']}")
-            self.logger.info(f"  插入块数: {inserted_count}")
-            self.logger.info(f"  失败批次: {len(failed_batches)}")
-            self.logger.info("=" * 50)
+            logger.info("=" * 50)
+            logger.info("插入统计:")
+            logger.info(f"  文档总数: {stats['total_documents']}")
+            logger.info(f"  有效文档: {stats['valid_documents']}")
+            logger.info(f"  无效文档: {len(stats['invalid_documents'])}")
+            logger.info(f"  总块数: {stats['total_chunks']}")
+            logger.info(f"  插入块数: {inserted_count}")
+            logger.info(f"  失败批次: {len(failed_batches)}")
+            logger.info("=" * 50)
 
             return result
 
         except Exception as e:
-            self.logger.error(f"插入文档失败: {e}")
+            logger.error(f"插入文档失败: {e}")
             return {
                 "success": False,
                 "message": str(e),
@@ -1064,7 +1065,7 @@ class MilvusManager:
             Dict[str, Any]: 插入结果
         """
         try:
-            self.logger.info(f"从文件读取文档: {file_path}")
+            logger.info(f"从文件读取文档: {file_path}")
 
             with open(file_path, 'r', encoding='utf-8') as f:
                 documents = json.load(f)
@@ -1072,22 +1073,22 @@ class MilvusManager:
             if not isinstance(documents, list):
                 documents = [documents]
 
-            self.logger.info(f"读取到 {len(documents)} 个文档")
+            logger.info(f"读取到 {len(documents)} 个文档")
             return self.insert_documents(collection_name, documents, **kwargs)
 
         except FileNotFoundError:
             error_msg = f"文件不存在: {file_path}"
-            self.logger.error(error_msg)
+            logger.error(error_msg)
             return {"success": False, "message": error_msg}
 
         except json.JSONDecodeError as e:
             error_msg = f"JSON解析失败: {e}"
-            self.logger.error(error_msg)
+            logger.error(error_msg)
             return {"success": False, "message": error_msg}
 
         except Exception as e:
             error_msg = f"读取文件失败: {e}"
-            self.logger.error(error_msg)
+            logger.error(error_msg)
             return {"success": False, "message": error_msg}
 
     def get_document_count(self, collection_name: str) -> Optional[int]:
@@ -1106,7 +1107,7 @@ class MilvusManager:
                 return stats['row_count']
             return 0
         except Exception as e:
-            self.logger.error(f"获取文档数量失败: {e}")
+            logger.error(f"获取文档数量失败: {e}")
             return None
 
     # ==================== 搜索功能 ====================
@@ -1171,7 +1172,7 @@ class MilvusManager:
             return formatted_results
 
         except Exception as e:
-            self.logger.error(f"语义搜索失败: {e}")
+            logger.error(f"语义搜索失败: {e}")
             return None
 
     def keyword_search(self,
@@ -1236,7 +1237,7 @@ class MilvusManager:
             return formatted_results
 
         except Exception as e:
-            self.logger.error(f"关键词搜索失败: {e}")
+            logger.error(f"关键词搜索失败: {e}")
             return None
 
     def hybrid_search(self,
@@ -1331,7 +1332,7 @@ class MilvusManager:
             return formatted_results
 
         except Exception as e:
-            self.logger.error(f"混合搜索失败: {e}")
+            logger.error(f"混合搜索失败: {e}")
             return None
 
     def text_match_search(self,
@@ -1386,7 +1387,7 @@ class MilvusManager:
             return formatted_results
 
         except Exception as e:
-            self.logger.error(f"文本匹配搜索失败: {e}")
+            logger.error(f"文本匹配搜索失败: {e}")
             return None
 
     def get_by_ids(self,
@@ -1419,7 +1420,7 @@ class MilvusManager:
             return results
 
         except Exception as e:
-            self.logger.error(f"根据ID获取文档失败: {e}")
+            logger.error(f"根据ID获取文档失败: {e}")
             return None
 
     def query_with_filter(self,
@@ -1455,7 +1456,7 @@ class MilvusManager:
             return results
 
         except Exception as e:
-            self.logger.error(f"查询文档失败: {e}")
+            logger.error(f"查询文档失败: {e}")
             return None
 
     # ==================== 实用功能 ====================
@@ -1479,7 +1480,7 @@ class MilvusManager:
             )
 
             if not results:
-                self.logger.info(f"集合 '{collection_name}' 为空，无需清空")
+                logger.info(f"集合 '{collection_name}' 为空，无需清空")
                 return True
 
             ids = [doc["id"] for doc in results]
@@ -1490,11 +1491,11 @@ class MilvusManager:
                 ids=ids
             )
 
-            self.logger.info(f"集合 '{collection_name}' 清空成功，删除了 {len(ids)} 个文档")
+            logger.info(f"集合 '{collection_name}' 清空成功，删除了 {len(ids)} 个文档")
             return True
 
         except Exception as e:
-            self.logger.error(f"清空集合失败: {e}")
+            logger.error(f"清空集合失败: {e}")
             return False
 
     def backup_collection(self,
@@ -1521,18 +1522,18 @@ class MilvusManager:
             )
 
             if not results:
-                self.logger.warning(f"集合 '{collection_name}' 为空，没有数据可备份")
+                logger.warning(f"集合 '{collection_name}' 为空，没有数据可备份")
                 return True
 
             # 保存到文件
             with open(backup_path, 'w', encoding='utf-8') as f:
                 json.dump(results, f, ensure_ascii=False, indent=2)
 
-            self.logger.info(f"集合 '{collection_name}' 备份成功，保存了 {len(results)} 个文档到 {backup_path}")
+            logger.info(f"集合 '{collection_name}' 备份成功，保存了 {len(results)} 个文档到 {backup_path}")
             return True
 
         except Exception as e:
-            self.logger.error(f"备份集合失败: {e}")
+            logger.error(f"备份集合失败: {e}")
             return False
 
     def get_status(self) -> Dict[str, Any]:
@@ -1565,7 +1566,7 @@ class MilvusManager:
             return status
 
         except Exception as e:
-            self.logger.error(f"获取状态失败: {e}")
+            logger.error(f"获取状态失败: {e}")
             return {"error": str(e)}
 
     def close(self):
@@ -1573,9 +1574,9 @@ class MilvusManager:
         try:
             if self.milvus_client:
                 # MilvusClient通常不需要显式关闭，但可以在这里添加清理逻辑
-                self.logger.info("Milvus管理器关闭")
+                logger.info("Milvus管理器关闭")
         except Exception as e:
-            self.logger.warning(f"关闭连接时出现警告: {e}")
+            logger.warning(f"关闭连接时出现警告: {e}")
 
 
 # ==================== 使用示例 ====================

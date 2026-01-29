@@ -25,12 +25,17 @@ database:
 milvus:
   host: "47.120.44.223"
   port: 19530
+  timeout: 30
   alias: "default"
   collection_name: "documents"
-  collection_database: "milvus_database"
+  database: "milvus_database"
   vector_dim: 1536
   index_type: "IVF_FLAT"
   metric_type: "L2"
+  enable_dynamic_field: True
+  limit: 10
+  bm25_k1: 1.2
+  bm25_b: 0.75
 
 # ==================== Neo4j图数据库配置 ====================
 neo4j:
@@ -69,11 +74,11 @@ mysql:
 
 # ==================== 文件处理配置 ====================
 file:
-  upload_dir: "./uploads"
+  upload_dir: "./upload"
   max_file_size: 104857600  # 100MB
   allowed_extensions: "pdf,csv,txt,jpg,png,jpeg"
-  temp_dir: "./uploads/temp"
-  processed_dir: "./uploads/processed"
+  temp_dir: "./upload/temp"
+  processed_dir: "./upload/processed"
 
 # ==================== 文本处理配置 ====================
 text:
@@ -85,8 +90,12 @@ text:
 embedding:
   model: "qwen3-embedding:0.6b"
   base_url: "http://47.120.44.223:11434"
+  dimension: 1024
   device: "cpu"
   batch_size: 32
+
+ollama:
+  uri: "http://47.120.44.223:11434"
 
 # ==================== OpenAI配置（可选） ====================
 openai:

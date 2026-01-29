@@ -7,19 +7,20 @@
 """
 Milvus管理器使用示例
 """
-
-from milvus_manager import MilvusManager, ConfigManager
-
+from app.config.settings import settings
+from app.core.milvus_processor import MilvusConfig
+from milvus_manager import MilvusManager
 
 def basic_example():
     """基本使用示例"""
     print("=== Milvus管理器基本使用示例 ===")
 
     # 1. 创建配置（可以从环境变量或JSON文件加载）
-    config = ConfigManager.load_from_env()
+    # config = MilvusConfig(settings.milvus_uri, settings.ollama_uri, settings.timeout, settings.default_db, settings.default_collection, settings.enable_dynamic_field,
+    #              settings.chunk_size, settings.chunk_overlap, settings.batch_size, settings.embedding_model, settings.embedding_dim, settings.default_search_limit, settings.bm25_k1, settings.bm25_b)
 
     # 2. 创建管理器
-    manager = MilvusManager(config)
+    manager = MilvusManager(settings.MILVUS_URI, settings.OLLAMA_URI, settings.MILVUS_DATABASE, settings.MILVUS_COLLECTION_NAME, settings.MILVUS_TIMEOUT)
 
     # 3. 初始化管理器
     if not manager.initialize():

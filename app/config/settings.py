@@ -334,6 +334,42 @@ class DynamicSettings(BaseSettings):
         return f"http://{self.MILVUS_HOST}:{self.MILVUS_PORT}"
 
     @property
+    def MILVUS_DATABASE(self) -> str:
+        return self._get_nested("milvus", "database", "")
+
+    @property
+    def MILVUS_VECTOR_DIM(self) -> int:
+        return self._get_nested("milvus", "vector_dim", 0)
+
+    @property
+    def MILVUS_INDEX_TYPE(self) -> str:
+        return self._get_nested("milvus", "index_type", "")
+
+    @property
+    def MILVUS_METRIC_TYPE(self) -> str:
+        return self._get_nested("milvus", "metric_type", "")
+
+    @property
+    def MILVUS_ENABLE_DYNAMIC_FIELD(self) -> bool:
+        return self._get_nested("milvus", "enable_dynamic_field", True)
+
+    @property
+    def MILVUS_LIMIT(self) -> float:
+        return self._get_nested("milvus", "limit", 0)
+
+    @property
+    def MILVUS_BM25_K1(self) -> float:
+        return self._get_nested("milvus", "bm25_k1", 0)
+
+    @property
+    def MILVUS_BM25_B(self) -> float:
+        return self._get_nested("milvus", "bm25_b", 0)
+
+    @property
+    def MILVUS_TIMEOUT(self) -> float:
+        return self._get_nested("milvus", "timeout", 0)
+
+    @property
     def REDIS_URL(self) -> str:
         env_url = os.getenv("REDIS_URL")
         if env_url:
@@ -428,6 +464,10 @@ class DynamicSettings(BaseSettings):
     @property
     def OPENAI_API_KEY(self) -> str:
         return os.getenv("OPENAI_API_KEY", self._get_nested("openai", "api_key", ""))
+
+    @property
+    def OLLAMA_URI(self) -> str:
+        return os.getenv("OLLAMA_URI", self._get_nested("ollama", "uri", ""))
 
     @property
     def OPENAI_MODEL(self) -> str:
