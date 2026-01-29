@@ -370,6 +370,10 @@ class DynamicSettings(BaseSettings):
         return self._get_nested("milvus", "timeout", 0)
 
     @property
+    def MILVUS_BATCH_SIZE(self) -> float:
+        return self._get_nested("milvus", "batch_size", 32)
+
+    @property
     def REDIS_URL(self) -> str:
         env_url = os.getenv("REDIS_URL")
         if env_url:

@@ -7,12 +7,15 @@
 """
 Milvus数据库管理器
 """
+import os
 
 from pymilvus import MilvusClient
 from typing import Optional, List, Dict, Any
-import logging
-from .config import MilvusConfig
 
+from . import MilvusConfig
+from ...logger.logger import AppLogger
+
+logger = AppLogger(name=os.path.basename(__file__), log_dir="logs", log_name="log.log").get_logger()
 
 class DatabaseManager:
     """Milvus数据库管理器"""
@@ -25,7 +28,6 @@ class DatabaseManager:
             config: Milvus配置
         """
         self.config = config
-        self.logger = logging.getLogger(__name__)
         self.client = None
 
     def _get_root_client(self) -> MilvusClient:
@@ -80,26 +82,26 @@ class DatabaseManager:
             if check_exists:
                 existing_dbs = client.list_databases()
                 if db_name in existing_dbs:
-                    self.logger.info(f"数据库 '{db_name}' 已存在")
+                    logger.info(f"数据库 '{db_name}' 已存在")
                     return True
 
             # 创建数据库
             client.create_database(db_name=db_name)
-            self.logger.info(f"数据库 '{db_name}' 创建成功")
+            logger.info(f"数据库 '{db_name}' 创建成功")
 
             # 验证创建
             updated_dbs = client.list_databases()
             success = db_name in updated_dbs
 
             if success:
-                self.logger.info(f"数据库列表: {updated_dbs}")
+                logger.info(f"数据库列表: {updated_dbs}")
             else:
-                self.logger.error(f"数据库 '{db_name}' 创建失败")
+                logger.error(f"数据库 '{db_name}' 创建失败")
 
             return success
 
         except Exception as e:
-            self.logger.error(f"创建数据库失败: {e}")
+            logger.error(f"创建数据库失败: {e}")
             return False
 
     def list_databases(self) -> Optional[List[str]]:
@@ -112,10 +114,10 @@ class DatabaseManager:
         try:
             client = self._get_root_client()
             databases = client.list_databases()
-            self.logger.info(f"当前数据库: {databases}")
+            logger.info(f"当前数据库: {databases}")
             return databases
         except Exception as e:
-            self.logger.error(f"列出数据库失败: {e}")
+            logger.error(f"列出数据库失败: {e}")
             return None
 
     def database_exists(self, db_name: str) -> bool:
@@ -134,7 +136,7 @@ class DatabaseManager:
                 return False
             return db_name in databases
         except Exception as e:
-            self.logger.error(f"检查数据库存在性失败: {e}")
+            logger.error(f"检查数据库存在性失败: {e}")
             return False
 
     def delete_database(self, db_name: str) -> bool:
@@ -149,17 +151,17 @@ class DatabaseManager:
         """
         try:
             if not self.database_exists(db_name):
-                self.logger.warning(f"数据库 '{db_name}' 不存在")
+                logger.warning(f"数据库 '{db_name}' 不存在")
                 return False
 
             client = self._get_root_client()
             client.drop_database(db_name=db_name)
 
-            self.logger.info(f"数据库 '{db_name}' 删除成功")
+            logger.info(f"数据库 '{db_name}' 删除成功")
             return True
 
         except Exception as e:
-            self.logger.error(f"删除数据库失败: {e}")
+            logger.error(f"删除数据库失败: {e}")
             return False
 
     def switch_database(self, db_name: str) -> bool:
@@ -174,18 +176,18 @@ class DatabaseManager:
         """
         try:
             if not self.database_exists(db_name):
-                self.logger.error(f"数据库 '{db_name}' 不存在")
+                logger.error(f"数据库 '{db_name}' 不存在")
                 return False
 
             # 创建新的客户端连接到指定数据库
             self.client = self._get_db_client(db_name)
             self.config.default_db = db_name
 
-            self.logger.info(f"已切换到数据库: {db_name}")
+            logger.info(f"已切换到数据库: {db_name}")
             return True
 
         except Exception as e:
-            self.logger.error(f"切换数据库失败: {e}")
+            logger.error(f"切换数据库失败: {e}")
             return False
 
     def get_database_info(self, db_name: str) -> Optional[Dict[str, Any]]:
@@ -200,7 +202,7 @@ class DatabaseManager:
         """
         try:
             if not self.database_exists(db_name):
-                self.logger.error(f"数据库 '{db_name}' 不存在")
+                logger.error(f"数据库 '{db_name}' 不存在")
                 return None
 
             # 获取数据库的集合列表
@@ -217,5 +219,5 @@ class DatabaseManager:
             return info
 
         except Exception as e:
-            self.logger.error(f"获取数据库信息失败: {e}")
+            logger.error(f"获取数据库信息失败: {e}")
             return None

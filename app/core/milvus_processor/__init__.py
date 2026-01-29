@@ -11,7 +11,8 @@ Milvus向量数据库管理器
 
 import logging
 from typing import Optional, Dict, Any, List
-from .config import MilvusConfig, ConfigManager
+
+from .config import MilvusConfig
 from .database_manager import DatabaseManager
 from .collection_manager import CollectionManager
 from .data_processor import DataProcessor
@@ -239,7 +240,6 @@ class MilvusManager:
 __all__ = [
     'MilvusManager',
     'MilvusConfig',
-    'ConfigManager',
     'DatabaseManager',
     'CollectionManager',
     'DataProcessor',

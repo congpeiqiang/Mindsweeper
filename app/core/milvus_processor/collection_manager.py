@@ -7,14 +7,18 @@
 """
 Milvus集合管理器
 """
+import os
 
 from pymilvus import MilvusClient, DataType, Function, FunctionType
 from typing import Optional, List, Dict, Any
 import logging
 import time
-from .config import MilvusConfig
-from .database_manager import DatabaseManager
 
+from . import MilvusConfig
+from .database_manager import DatabaseManager
+from ...logger.logger import AppLogger
+
+logger = AppLogger(name=os.path.basename(__file__), log_dir="logs", log_name="log.log").get_logger()
 
 class CollectionManager:
     """Milvus集合管理器"""
@@ -29,7 +33,6 @@ class CollectionManager:
         """
         self.db_manager = db_manager
         self.config = config
-        self.logger = logging.getLogger(__name__)
         self.client = db_manager.client
 
     def create_default_schema(self, enable_dynamic_field: bool = None) -> Any:
@@ -45,7 +48,7 @@ class CollectionManager:
         enable_dynamic = enable_dynamic_field or self.config.enable_dynamic_field
 
         try:
-            self.logger.info("创建默认集合Schema...")
+            logger.info("创建默认集合Schema...")
 
             # 创建Schema
             schema = self.client.create_schema(
@@ -137,11 +140,11 @@ class CollectionManager:
                     description=description
                 )
 
-            self.logger.info("默认Schema创建成功")
+            logger.info("默认Schema创建成功")
             return schema
 
         except Exception as e:
-            self.logger.error(f"创建Schema失败: {e}")
+            logger.error(f"创建Schema失败: {e}")
             raise
 
     def add_bm25_functions(self, schema: Any) -> bool:
@@ -155,7 +158,7 @@ class CollectionManager:
             bool: 操作是否成功
         """
         try:
-            self.logger.info("添加BM25函数...")
+            logger.info("添加BM25函数...")
 
             # 标题BM25函数
             title_bm25_function = Function(
@@ -177,11 +180,11 @@ class CollectionManager:
             schema.add_function(title_bm25_function)
             schema.add_function(content_bm25_function)
 
-            self.logger.info("BM25函数添加成功")
+            logger.info("BM25函数添加成功")
             return True
 
         except Exception as e:
-            self.logger.error(f"添加BM25函数失败: {e}")
+            logger.error(f"添加BM25函数失败: {e}")
             return False
 
     def create_default_index_params(self) -> Any:
@@ -192,7 +195,7 @@ class CollectionManager:
             Any: 索引参数对象
         """
         try:
-            self.logger.info("创建默认索引参数...")
+            logger.info("创建默认索引参数...")
 
             index_params = self.client.prepare_index_params()
 
@@ -229,11 +232,11 @@ class CollectionManager:
                 metric_type="COSINE"
             )
 
-            self.logger.info("默认索引参数创建成功")
+            logger.info("默认索引参数创建成功")
             return index_params
 
         except Exception as e:
-            self.logger.error(f"创建索引参数失败: {e}")
+            logger.error(f"创建索引参数失败: {e}")
             raise
 
     def create_collection(self,
@@ -256,7 +259,7 @@ class CollectionManager:
             bool: 操作是否成功
         """
         try:
-            self.logger.info(f"创建集合: {collection_name}")
+            logger.info(f"创建集合: {collection_name}")
 
             # 验证集合名称
             if not collection_name or not isinstance(collection_name, str):
@@ -265,12 +268,12 @@ class CollectionManager:
             # 检查集合是否已存在
             if self.client.has_collection(collection_name):
                 if drop_existing:
-                    self.logger.warning(f"集合 '{collection_name}' 已存在，正在删除...")
+                    logger.warning(f"集合 '{collection_name}' 已存在，正在删除...")
                     self.client.drop_collection(collection_name)
-                    self.logger.info(f"集合 '{collection_name}' 删除成功")
+                    logger.info(f"集合 '{collection_name}' 删除成功")
                     time.sleep(2)
                 else:
-                    self.logger.warning(f"集合 '{collection_name}' 已存在")
+                    logger.warning(f"集合 '{collection_name}' 已存在")
                     return True
 
             # 创建Schema（如果需要）
@@ -291,7 +294,7 @@ class CollectionManager:
                 index_params=index_params
             )
 
-            self.logger.info(f"集合 '{collection_name}' 创建成功")
+            logger.info(f"集合 '{collection_name}' 创建成功")
 
             # 等待集合加载
             if wait_for_load:
@@ -300,7 +303,7 @@ class CollectionManager:
             return True
 
         except Exception as e:
-            self.logger.error(f"创建集合失败: {e}")
+            logger.error(f"创建集合失败: {e}")
             return False
 
     def wait_for_collection_load(self,
@@ -317,7 +320,7 @@ class CollectionManager:
             bool: 是否加载成功
         """
         try:
-            self.logger.info(f"等待集合 '{collection_name}' 加载...")
+            logger.info(f"等待集合 '{collection_name}' 加载...")
             start_time = time.time()
 
             while time.time() - start_time < timeout:
@@ -329,24 +332,24 @@ class CollectionManager:
                     state_name = load_state['state'].name
 
                     if state_name == 'Loaded':
-                        self.logger.info("集合加载完成")
+                        logger.info("集合加载完成")
                         return True
                     elif state_name == 'Loading':
-                        self.logger.info("集合正在加载中...")
+                        logger.info("集合正在加载中...")
                         time.sleep(2)
                     else:
-                        self.logger.warning(f"集合状态异常: {state_name}")
+                        logger.warning(f"集合状态异常: {state_name}")
                         time.sleep(2)
 
                 except Exception as e:
-                    self.logger.warning(f"获取加载状态失败: {e}")
+                    logger.warning(f"获取加载状态失败: {e}")
                     time.sleep(2)
 
-            self.logger.warning(f"集合加载超时（{timeout}秒）")
+            logger.warning(f"集合加载超时（{timeout}秒）")
             return False
 
         except Exception as e:
-            self.logger.error(f"等待集合加载失败: {e}")
+            logger.error(f"等待集合加载失败: {e}")
             return False
 
     def list_collections(self) -> Optional[List[str]]:
@@ -358,10 +361,10 @@ class CollectionManager:
         """
         try:
             collections = self.client.list_collections()
-            self.logger.info(f"当前集合: {collections}")
+            logger.info(f"当前集合: {collections}")
             return collections
         except Exception as e:
-            self.logger.error(f"列出集合失败: {e}")
+            logger.error(f"列出集合失败: {e}")
             return None
 
     def collection_exists(self, collection_name: str) -> bool:
@@ -377,7 +380,7 @@ class CollectionManager:
         try:
             return self.client.has_collection(collection_name)
         except Exception as e:
-            self.logger.error(f"检查集合存在性失败: {e}")
+            logger.error(f"检查集合存在性失败: {e}")
             return False
 
     def get_collection_info(self, collection_name: str) -> Optional[Dict[str, Any]]:
@@ -392,7 +395,7 @@ class CollectionManager:
         """
         try:
             if not self.collection_exists(collection_name):
-                self.logger.error(f"集合 '{collection_name}' 不存在")
+                logger.error(f"集合 '{collection_name}' 不存在")
                 return None
 
             # 获取集合信息
@@ -410,7 +413,7 @@ class CollectionManager:
                     collection_name=collection_name
                 )
             except Exception as e:
-                self.logger.warning(f"获取集合统计失败: {e}")
+                logger.warning(f"获取集合统计失败: {e}")
                 stats = None
 
             info = {
@@ -424,7 +427,7 @@ class CollectionManager:
             return info
 
         except Exception as e:
-            self.logger.error(f"获取集合信息失败: {e}")
+            logger.error(f"获取集合信息失败: {e}")
             return None
 
     def delete_collection(self, collection_name: str) -> bool:
@@ -439,15 +442,15 @@ class CollectionManager:
         """
         try:
             if not self.collection_exists(collection_name):
-                self.logger.warning(f"集合 '{collection_name}' 不存在")
+                logger.warning(f"集合 '{collection_name}' 不存在")
                 return False
 
             self.client.drop_collection(collection_name)
-            self.logger.info(f"集合 '{collection_name}' 删除成功")
+            logger.info(f"集合 '{collection_name}' 删除成功")
             return True
 
         except Exception as e:
-            self.logger.error(f"删除集合失败: {e}")
+            logger.error(f"删除集合失败: {e}")
             return False
 
     def clear_collection(self, collection_name: str) -> bool:
@@ -462,7 +465,7 @@ class CollectionManager:
         """
         try:
             if not self.collection_exists(collection_name):
-                self.logger.error(f"集合 '{collection_name}' 不存在")
+                logger.error(f"集合 '{collection_name}' 不存在")
                 return False
 
             # 获取所有文档ID
@@ -473,7 +476,7 @@ class CollectionManager:
             )
 
             if not results:
-                self.logger.info(f"集合 '{collection_name}' 为空")
+                logger.info(f"集合 '{collection_name}' 为空")
                 return True
 
             ids = [doc["id"] for doc in results]
@@ -484,9 +487,9 @@ class CollectionManager:
                 ids=ids
             )
 
-            self.logger.info(f"集合 '{collection_name}' 已清空，删除了 {len(ids)} 个文档")
+            logger.info(f"集合 '{collection_name}' 已清空，删除了 {len(ids)} 个文档")
             return True
 
         except Exception as e:
-            self.logger.error(f"清空集合失败: {e}")
+            logger.error(f"清空集合失败: {e}")
             return False

@@ -7,6 +7,7 @@
 """
 Milvus数据处理器
 """
+import os
 
 from langchain_ollama import OllamaEmbeddings
 from typing import List, Dict, Any, Optional, Tuple
@@ -17,7 +18,9 @@ import json
 from tqdm import tqdm
 from .config import MilvusConfig
 from .collection_manager import CollectionManager
+from ...logger.logger import AppLogger
 
+logger = AppLogger(name=os.path.basename(__file__), log_dir="logs", log_name="log.log").get_logger()
 
 class DataProcessor:
     """Milvus数据处理器"""

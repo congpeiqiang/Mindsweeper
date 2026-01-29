@@ -7,6 +7,7 @@
 """
 Milvus搜索引擎
 """
+import os
 
 from pymilvus import AnnSearchRequest, Function, FunctionType
 from typing import Optional, List, Dict, Any
@@ -14,7 +15,9 @@ import logging
 from .config import MilvusConfig
 from .data_processor import DataProcessor
 from .collection_manager import CollectionManager
+from ...logger.logger import AppLogger
 
+logger = AppLogger(name=os.path.basename(__file__), log_dir="logs", log_name="log.log").get_logger()
 
 class SearchEngine:
     """Milvus搜索引擎"""
@@ -29,7 +32,6 @@ class SearchEngine:
         """
         self.data_processor = data_processor
         self.config = config
-        self.logger = logging.getLogger(__name__)
         self.client = data_processor.client
         self.embeddings = data_processor.embeddings
 
@@ -78,7 +80,7 @@ class SearchEngine:
             return self._format_search_results(results, output_fields)
 
         except Exception as e:
-            self.logger.error(f"语义搜索失败: {e}")
+            logger.error(f"语义搜索失败: {e}")
             return None
 
     def keyword_search(self,
@@ -125,7 +127,7 @@ class SearchEngine:
             return self._format_search_results(results, output_fields)
 
         except Exception as e:
-            self.logger.error(f"关键词搜索失败: {e}")
+            logger.error(f"关键词搜索失败: {e}")
             return None
 
     def hybrid_search(self,
@@ -222,7 +224,7 @@ class SearchEngine:
             return formatted_results
 
         except Exception as e:
-            self.logger.error(f"混合搜索失败: {e}")
+            logger.error(f"混合搜索失败: {e}")
             return None
 
     def text_match_search(self,
@@ -266,7 +268,7 @@ class SearchEngine:
             return results
 
         except Exception as e:
-            self.logger.error(f"文本匹配搜索失败: {e}")
+            logger.error(f"文本匹配搜索失败: {e}")
             return None
 
     def get_by_ids(self,
@@ -298,7 +300,7 @@ class SearchEngine:
             return results
 
         except Exception as e:
-            self.logger.error(f"根据ID获取文档失败: {e}")
+            logger.error(f"根据ID获取文档失败: {e}")
             return None
 
     def query_with_filter(self,
@@ -333,7 +335,7 @@ class SearchEngine:
             return results
 
         except Exception as e:
-            self.logger.error(f"查询文档失败: {e}")
+            logger.error(f"查询文档失败: {e}")
             return None
 
     def _format_search_results(self,
@@ -393,7 +395,7 @@ class SearchEngine:
         }
 
         if search_type not in search_methods:
-            self.logger.error(f"不支持的搜索类型: {search_type}")
+            logger.error(f"不支持的搜索类型: {search_type}")
             return None
 
         method = search_methods[search_type]
