@@ -52,6 +52,9 @@ async def basic_crud_example():
         added_count = await redis_client.sadd(tags_key, *tags)
         print(f"为用户 {user_id} 添加标签，成功添加 {added_count} 个标签")
 
+        # 添加用户到群组
+        added_count = await redis_client.sadd("group:developers:members", "user:1001", "user:1002", "user:1003")
+
         # 使用 scard 获取集合成员数量
         tag_count = await redis_client.scard(tags_key)
         print(f"用户 {user_id} 的标签数量: {tag_count}")
@@ -317,7 +320,7 @@ async def basic_crud_example():
 async def scan_iter_advanced_examples():
     """scan_iter 高级用法示例"""
 
-    redis_client = AsyncRedisClient()
+    redis_client = AsyncRedisClient(host='47.120.44.223', port=6379, db=2)
 
     try:
         if not await redis_client.connect():
