@@ -16,7 +16,7 @@ logger = AppLogger(name=os.path.basename(__file__), log_dir="logs", log_name="lo
 
 class DocumentService:
     @classmethod
-    async def find_by_file_from_mongdb(cls, file_hash_add_filename, file_content, doc_manager, collection_name="test_db"):
+    async def find_by_file_from_mongdb(cls, file_hash_add_filename, doc_manager, collection_name):
 
         try:
             # Check if filename already exists in doc_status storage
@@ -28,7 +28,7 @@ class DocumentService:
                 # Use `or ""` to handle both missing key and None value (e.g., legacy rows without track_id)
                 return InsertResponse(
                     status="duplicated",
-                    message=f"File '{file_hash_add_filename}' already exists in document storage (Status: {status}).",
+                    message=f"File '{file_hash_add_filename}' already exists in document storage.",
                     file_id=file_hash_add_filename,
                     code=400,
                 )
@@ -102,4 +102,27 @@ class DocumentService:
                     status="failure",
                     message=f"不支持的文件类型{filename.lower()},支持的文件类型列表为{supported_extensions}",
                     file_id="",
+                    file_size=300,
+                    file_path="./tmp/xxx.pdf"
                 )
+
+    @classmethod
+    async def insert_file_record_to_mongdb(cls, doc_manager: DocumentManager, file_info:dict, file_hash_add_filename_stem: str, collection_name: str="mindsweeper"):
+        try:
+            await doc_manager.insert_one(collection_name=collection_name, document=file_info)
+            info = f"文件 {file_hash_add_filename_stem} 记录上传成功，文件信息为{file_info}， collection_name为{collection_name}"
+            logger.info(info)
+            return InsertResponse(
+                status="success",
+                message=info,
+                file_id=file_hash_add_filename_stem,
+                code=200
+            )
+        except Exception as e:
+            error_info = (f"Error /documents/upload: {traceback.format_exc()}")
+            return InsertResponse(
+                status="failure",
+                message=error_info,
+                file_id=file_hash_add_filename_stem,
+                code=400
+            )

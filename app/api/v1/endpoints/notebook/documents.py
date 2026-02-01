@@ -41,7 +41,7 @@ async def upload_to_input_dir(
         mongdb_config = MongoDBConfig(
             host="localhost",
             port=27017,
-            database="main_db"
+            database="notebook"
         )
         doc_manager: DocumentManager = DocumentManagerFactory.get_document_instance(mongdb_config)
         logger.info(f"初始化Document Manager成功")
@@ -52,7 +52,7 @@ async def upload_to_input_dir(
         response = InsertResponse(
             status="failure",
             message=error_info_,
-            track_id="",
+            file_id="",
             code=400
         )
         fail_response = await ResponseBuilder.fail(data=response)
@@ -61,7 +61,8 @@ async def upload_to_input_dir(
     try:
         file_content = file.file
         filename = file.filename
-        filename_stem = Path(file.filename).stem
+        filename_stem = Path(file.filename).stem # 获取文件后缀(去除后缀)
+        filename_suffix = Path(file.filename).suffix # 获取文件后缀
         logger.info(f"解析出文件名: {filename}")
     except Exception as e:
         error_info = traceback.format_exc()
@@ -69,7 +70,7 @@ async def upload_to_input_dir(
         response = InsertResponse(
             status="failure",
             message=error_info,
-            track_id="",
+            file_id="",
             code=400
         )
         fail_response = await ResponseBuilder.fail(data=response)
@@ -87,7 +88,7 @@ async def upload_to_input_dir(
         response = InsertResponse(
             status="failure",
             message=error_info_,
-            track_id="",
+            file_id="",
             code=400
         )
         fail_response = await ResponseBuilder.fail(data=response)
@@ -101,7 +102,7 @@ async def upload_to_input_dir(
         return fail_response
 
     # 基于mongdb检查是否存在文件记录
-    response = await DocumentService.find_by_file_from_mongdb(file_hash_add_filename_stem, file_content, doc_manager, collection_name="test_db")
+    response = await DocumentService.find_by_file_from_mongdb(file_hash_add_filename_stem, doc_manager, collection_name="mindsweeper")
     if response.status != "success":
         # return response
         fail_response = await ResponseBuilder.fail(data=response)
@@ -113,14 +114,46 @@ async def upload_to_input_dir(
         fail_response = await ResponseBuilder.fail(data=response)
         return fail_response
 
-    # 保存上传文件(background_tasks)
-    file_path=os.path.join("./upload", file_hash_add_filename_stem)
+    # 保存上传文件
+    file_path=os.path.join("./upload", filename)
+    os.makedirs(os.path.dirname(file_path), exist_ok=True)
+    # 异步写入文件
     async with aiofiles.open(file_path, "wb") as buffer:
-        shutil.copyfileobj(file.file, buffer)
-    background_tasks.add_task(doc_manager.pipeline_index_file, Path(file_path), file_hash_add_filename_stem, collection_name="test_db")
+        # 分块读取和写入，避免内存溢出
+        chunk_size = 1024 * 1024  # 1MB
+        while chunk := await file.read(chunk_size):
+            await buffer.write(chunk)
+
+    # 上传文件记录至mongdb
+    # 计算文件大小、文件类型、文件id、文件路径
+    try:
+        size_bytes = Path(file_path).stat().st_size
+    except Exception as e:
+        error_info = traceback.format_exc()
+        logger.error(error_info)
+        response = InsertResponse(
+            status="failure",
+            message=error_info,
+            file_id=file_hash_add_filename_stem,
+            code=400
+        )
+    file_info = {"file_id":file_hash_add_filename_stem,
+                 "status":"success",
+                 "file_type":filename_suffix,
+                 "file_size":size_bytes,
+                 "file_path":file_path,
+                 "create_time":datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+                 "update_time":None
+                 }
+    response = await DocumentService.insert_file_record_to_mongdb(doc_manager, file_info, file_hash_add_filename_stem, collection_name="mindsweeper")
+    if response.status != "success":
+        fail_response = await ResponseBuilder.fail(data=response)
+        return fail_response
     return await ResponseBuilder.success(data=InsertResponse(
         status="success",
-        message=f"File '{filename}' uploaded successfully. Processing will continue in background.",
+        message=f"File '{filename}' uploaded successfully.",
         file_id=file_hash_add_filename_stem,
-        code=200)
+        code=200,
+        file_size=size_bytes,
+        file_path=file_path)
     )

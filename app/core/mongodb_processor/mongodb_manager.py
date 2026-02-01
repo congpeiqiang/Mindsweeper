@@ -39,7 +39,8 @@ class MongoDBConfig:
     port: int = 27017
     username: str = ""
     password: str = ""
-    database: str = "default_db"
+    database: str = "notebook"
+    collection: str = "mindsweeper"
     auth_source: str = ""
     max_pool_size: int = 100
     min_pool_size: int = 10
@@ -163,7 +164,7 @@ class MongoDBManager:
         """批量转换ObjectId为字符串"""
         return [self._convert_objectid(doc) for doc in documents]
 
-    def insert_one(self, collection_name: str, document: Dict) -> Optional[str]:
+    async def insert_one(self, collection_name: str, document: Dict) -> Optional[str]:
         """
         插入单个文档
 

@@ -29,12 +29,14 @@ class InsertResponse(BaseModel):
     # track_id: str = Field(description="Tracking ID for monitoring processing status")
     file_id: str = Field(description="文件id")
     code:int = Field(description="状态码", default=200)
+    file_size: float = Field(description="文件大小", default=None)
+    file_path: str = Field(description="文件路径", default="")
 
     class Config:
         json_schema_extra = {
             "example": {
                 "status": "success",
-                "message": "File 'document.pdf' uploaded successfully. Processing will continue in background.",
-                "track_id": "upload_20250729_170612_abc123",
+                "message": "File 'document.pdf' uploaded successfully.",
+                "file_id": "upload_20250729_170612_abc123",
             }
         }

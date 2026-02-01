@@ -24,3 +24,9 @@ if json_match:
     print(json_str)
     analysis = json.loads(json_str)
     print(type(analysis), analysis)
+
+
+from pathlib import Path
+file_path = r"D:\workspace\huice\Mindsweeper\upload\旅行日记.pdf"
+size_bytes = Path(file_path).stat().st_size
+print(size_bytes)
