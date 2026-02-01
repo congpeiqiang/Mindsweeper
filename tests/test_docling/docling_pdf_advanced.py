@@ -33,7 +33,9 @@ def advanced_pdf_parsing(pdf_path: str, output_dir: str = "output"):
 
     # 2. 执行转换
     print(f"正在解析: {pdf_path}")
-    result: ConversionResult = converter.convert(pdf_path)
+    result: ConversionResult = converter.convert(pdf_path,
+                                                 raises_on_error=False # 不抛出异常，继续处理其他文件
+                                                )
 
     if result.status.name not in ["SUCCESS", "PARTIAL_SUCCESS"]:
         print("解析失败")

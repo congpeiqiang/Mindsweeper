@@ -9,7 +9,9 @@ def basic_pdf_parsing(pdf_path: str):
     converter = DocumentConverter()
 
     # 2. 转换PDF文件
-    result: ConversionResult = converter.convert(pdf_path)
+    result: ConversionResult = converter.convert(pdf_path,
+                                                 raises_on_error = False  # 不抛出异常，继续处理其他文件
+                                                 )
 
     # 3. 检查转换状态
     print(f"转换状态: {result.status}")

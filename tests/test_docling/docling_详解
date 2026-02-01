@@ -1,0 +1,119 @@
+# Docling解析
+
+# 1. Docling后端解析器 
+
+## 1.1  PyPdfiumDocumentBackend
+
+​	`PyPdfiumDocumentBackend` 是 Docling 文档处理库中的一个 PDF 解析后端，它基于 PyPdfium2 库构建，主要用于从 PDF 文件中提取文本、图像和布局信息。
+
+## 1.2 DoclingParseV4DocumentBackend
+
+# 2. 普通PDF解析
+
+- 定义DocumentConverter
+
+  ```python
+  converter = DocumentConverter(
+          # 格式选项配置
+          format_options={
+              "pdf": {
+                  "backend": PyPdfiumDocumentBackend,
+                  "pipeline_options": {
+                      "extract_tables": True,
+                      "extract_formulas": True,
+                      "extract_pictures": True,
+                      "extract_paragraphs": True,
+                      "extract_headings": True,
+                      "extract_lists": True,
+                      "ocr_enabled": True,  # 启用OCR
+                      "ocr_languages": ["en", "zh"]  # 支持中英文
+                  }
+              }
+          }
+      )
+  ```
+
+  
+
+- 执行转换
+
+  ```python
+  result: ConversionResult = converter.convert(
+      pdf_path,
+      raises_on_error=False # 不抛出异常，继续处理其他文件
+  )
+  # 检查转换状态
+  print(f"转换状态: {result.status}")
+  print(f"输入文件: {result.input.file.name}")
+  print(f"文档格式: {result.input.format}")
+  ```
+
+- 解析pdf结果转为markdown
+
+  ```python
+  markdown_content = result.document.export_to_markdown()
+  ```
+
+  ```python
+  md_output = Path(output_dir) / f"{Path(pdf_path).stem}.md"
+      with open(md_output, "w", encoding="utf-8") as f:
+          f.write(document.export_to_markdown())
+      print(f"✓ Markdown文档已保存: {md_output}")
+  ```
+
+- 提取和保存图片
+
+  ```python
+  pictures = document.pictures
+      print(f"✓ 发现 {len(pictures)} 张图片")
+  
+      for i, picture in enumerate(pictures):
+          img_path = Path(output_dir) / f"picture_{i + 1}.png"
+          picture.save_image(img_path)
+  
+          print(f"  图片{i + 1}: {picture.caption or '无描述'}")
+          print(f"    格式: {picture.format}")
+  ```
+
+- 提取公式
+
+  ```python
+  formulas = document.formulas
+      print(f"✓ 发现 {len(formulas)} 个公式")
+  
+      if formulas:
+          formulas_path = Path(output_dir) / "formulas.txt"
+          with open(formulas_path, "w", encoding="utf-8") as f:
+              for i, formula in enumerate(formulas):
+                  f.write(f"公式 {i + 1}:\n")
+                  f.write(f"LaTeX: {formula.latex}\n")
+                  f.write(f"位置: 第{formula.location.page}页\n")
+                  f.write("-" * 50 + "\n")
+  ```
+
+- 提取和保存表格
+
+  ```python
+  tables = document.tables
+      print(f"✓ 发现 {len(tables)} 个表格")
+      for i, table in enumerate(tables):
+          # 保存为CSV
+          csv_path = Path(output_dir) / f"table_{i + 1}.csv"
+          table.df.to_csv(csv_path, index=False, encoding="utf-8-sig")
+  ```
+
+  
+
+# 3. OCR PDF 解析
+
+# 4. URL PDF 解析
+
+```python
+# 直接从URL解析PDF
+url = "https://example.com/document.pdf"
+result = DocumentConverter().convert(
+    url,
+    raises_on_error=False # 不抛出异常，继续处理其他文件
+)
+```
+
