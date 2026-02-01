@@ -1,7 +1,8 @@
 # _*_ coding:utf-8_*_
+import random
+
 from pymongo import MongoClient
 from datetime import datetime, timedelta
-import random
 
 
 class MultipleDocumentsCRUD:

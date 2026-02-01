@@ -514,7 +514,7 @@ async def basic_crud_example():
     """基本增删查改示例 - 增强版"""
 
     # 创建Redis客户端
-    redis_client = AsyncRedisClient(host='localhost', port=6379, db=0)
+    redis_client = AsyncRedisClient(host='47.120.44.223', port=6379, db=2)
 
     try:
         # 测试连接
