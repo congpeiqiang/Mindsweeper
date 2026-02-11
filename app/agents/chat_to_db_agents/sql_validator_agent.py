@@ -153,7 +153,7 @@ def validate_sql_security(sql_query: str, runtime:ToolRuntime) -> Command:
         })
         tool_message = ToolMessage(name="validate_sql_security", content=validation_result_final.model_dump_json(),
                                    tool_call_id=tool_call_id)
-        return Command(update={"messages": [tool_message], "validation_result": validation_result_final,
+        return Command(update={"messages": [tool_message], "validation_result": [validation_result_final],
                                "current_stage": "sql_validation"})
         
     except Exception as e:
@@ -221,7 +221,7 @@ def validate_sql_performance(sql_query: str, runtime:ToolRuntime) -> Command:
         })
         tool_message = ToolMessage(name="validate_sql_performance", content=str(validation_result_final),
                                    tool_call_id=tool_call_id)
-        return Command(update={"messages": [tool_message], "validation_result": validation_result_final,
+        return Command(update={"messages": [tool_message], "validation_result": [validation_result_final],
                                "current_stage": "sql_validation"})
         
     except Exception as e:
@@ -281,7 +281,7 @@ def fix_sql_issues(sql_query: str, validation_errors: List[str], runtime:ToolRun
         })
         tool_message = ToolMessage(name="fix_sql_issues", content=str(validation_result_final),
                                    tool_call_id=tool_call_id)
-        return Command(update={"messages": [tool_message], "validation_result": validation_result_final,
+        return Command(update={"messages": [tool_message], "validation_result": [validation_result_final],
                                "current_stage": "sql_validation"})
         
     except Exception as e:

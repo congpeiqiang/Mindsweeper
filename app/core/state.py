@@ -26,8 +26,8 @@ class SQLValidationResult(BaseModel):
     """SQL验证结果"""
     success: bool
     sql_name: str
-    is_valid: bool
-    is_secure: bool
+    is_valid: bool = field(default=True)
+    is_secure: bool = field(default=True)
     security_issues: List[str] = field(default_factory=list)
     errors: List[str] = field(default_factory=list)
     warnings: List[str] = field(default_factory=list)
