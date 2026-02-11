@@ -89,7 +89,6 @@ def retrieve_database_schema(query: str, runtime: ToolRuntime[UserContext, SQLMe
             relationships = schema_context.get("relationships", [])
             # schema_info = update_schema_info(state, schema_info={"tables": tables, "value_mappings": value_mappings, "relationships": relationships})
             schema_info = SchemaInfo(tables=tables, value_mappings=value_mappings, relationships=relationships)
-            print(f"schema_info: {schema_info}")
             tool_message = ToolMessage(name="retrieve_database_schema", content=schema_info.model_dump_json(),
                                        tool_call_id=tool_call_id)
             return Command(update={"messages":[tool_message], "schema_info": schema_info, "current_stage": "schema_analysis"})

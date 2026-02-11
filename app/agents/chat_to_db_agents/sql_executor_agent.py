@@ -50,7 +50,7 @@ def execute_sql_query(sql_query: str, connection_id, timeout: int = 30) -> Dict[
 
         # 执行查询
         result_data = execute_query_with_connection(connection, sql_query)
-        print(f"Tool: 执行SQL查询结果: {result_data}; sql: {sql_query}")
+        print(f"Tool: 执行SQL查询结果: {result_data}; \nsql: {sql_query}")
         return {
             "success": True,
             "data": {
@@ -118,7 +118,6 @@ def analyze_query_performance(sql_query: str, execution_result: Dict[str, Any]) 
             "success": False,
             "error": str(e)
         }
-# pragma: no cover  MS80OmFIVnBZMlhrdUp2bG43bmx2TG82UkZoR1VBPT06ZTNlZTRlYjY=
 
 
 @tool

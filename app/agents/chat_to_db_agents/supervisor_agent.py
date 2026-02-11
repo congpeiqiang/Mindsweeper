@@ -307,7 +307,6 @@ class SupervisorAgent:
                 config={"recursion_limit": 16},
                 context=user_context
             )
-            print("supervisor.ainvoke result: \n", result)
             return {
                 "success": True,
                 "result": result
