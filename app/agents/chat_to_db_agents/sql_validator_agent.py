@@ -96,8 +96,10 @@ def validate_sql_syntax(sql_query: str, runtime = ToolRuntime) -> Command:
         return Command(update={"messages":[tool_message], "validation_result": validation_result_final, "current_stage": "sql_validation"})
         
     except Exception as e:
+        tool_message = ToolMessage(name="validate_sql_syntax", content="Calling the tool produced no output.",
+                                   tool_call_id=tool_call_id)
         error_history = update_error_history(state,error_history={"sql_validator_agent:tool:validate_sql_syntax": str(e)})
-        return Command(update={"error_history": error_history, "current_stage": "sql_validation"})
+        return Command(update={"messages":[tool_message], "error_history": error_history, "current_stage": "sql_validation"})
 
 @tool
 def validate_sql_security(sql_query: str, runtime:ToolRuntime) -> Command:
@@ -223,8 +225,10 @@ def validate_sql_performance(sql_query: str, runtime:ToolRuntime) -> Command:
                                "current_stage": "sql_validation"})
         
     except Exception as e:
+        tool_message = ToolMessage(name="validate_sql_performance", content="Calling the tool produced no output.",
+                                   tool_call_id=tool_call_id)
         error_history = update_error_history(state, error_history={"sql_validator_agent:tool:validate_sql_performance": str(e)})
-        return Command(update={"error_history": error_history, "current_stage": "sql_validation"})
+        return Command(update={"messages": [tool_message], "error_history": error_history, "current_stage": "sql_validation"})
 
 
 @tool
@@ -281,8 +285,10 @@ def fix_sql_issues(sql_query: str, validation_errors: List[str], runtime:ToolRun
                                "current_stage": "sql_validation"})
         
     except Exception as e:
+        tool_message = ToolMessage(name="fix_sql_issues", content="Calling the tool produced no output.",
+                                   tool_call_id=tool_call_id)
         error_history = [{"sql_validator_agent:tool:fix_sql_issues": str(e)}]
-        return Command(update={"error_history": error_history, "current_stage": "sql_validation"})
+        return Command(update={"messages": [tool_message], "error_history": error_history, "current_stage": "sql_validation"})
 
 @tool
 def human_feedback(state):

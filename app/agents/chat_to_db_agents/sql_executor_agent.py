@@ -201,7 +201,7 @@ def format_query_results(execution_result: Dict[str, Any], format_type: str = "t
 @dynamic_prompt
 def create_system_prompt(request: ModelRequest) -> str:
     context = request.runtime.context
-    connection_id = context.get("connection_id", None)
+    connection_id = getattr(context, "connection_id", None)
     """创建系统提示"""
     system_msg = f"""你是一个专业的SQL执行专家。
         **重要：当前数据库connection_id是 {connection_id}**

@@ -110,8 +110,10 @@ SQL: {sample.get('sql', '')}
         tool_message = ToolMessage(name="analyze_user_query", content=sql_query,tool_call_id=tool_call_id)
         return Command(update={"messages": [tool_message], "generated_sql": [sql_query], "current_stage": "sql_generation"})
     except Exception as e:
+        tool_message = ToolMessage(name="generate_sql_query", content="Calling the tool produced no output.",
+                                   tool_call_id=tool_call_id)
         error_history = update_error_history(state, error_history=[{"sql_generator_agent:tool:generate_sql_query": str(e)}])
-        return Command(update={"error_history": error_history, "current_stage": "sql_generation"})
+        return Command(update={"messages": [tool_message], "error_history": error_history, "current_stage": "sql_generation"})
 
 @tool
 def generate_sql_with_samples(
