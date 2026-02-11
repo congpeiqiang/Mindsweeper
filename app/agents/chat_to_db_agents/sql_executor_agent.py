@@ -51,6 +51,7 @@ def execute_sql_query(sql_query: str, connection_id, timeout: int = 30) -> Dict[
         # 执行查询
         result_data = execute_query_with_connection(connection, sql_query)
         print(f"Tool: 执行SQL查询结果: {result_data}; \nsql: {sql_query}")
+
         return {
             "success": True,
             "data": {

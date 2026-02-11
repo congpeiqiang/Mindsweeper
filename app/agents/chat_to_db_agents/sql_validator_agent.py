@@ -151,16 +151,16 @@ def validate_sql_security(sql_query: str, runtime:ToolRuntime) -> Command:
             "security_issues": security_issues,
             "warnings": warnings
         })
-        tool_message = ToolMessage(name="validate_sql_security", content=str(validation_result_final),
+        tool_message = ToolMessage(name="validate_sql_security", content=validation_result_final.model_dump_json(),
                                    tool_call_id=tool_call_id)
         return Command(update={"messages": [tool_message], "validation_result": validation_result_final,
                                "current_stage": "sql_validation"})
         
     except Exception as e:
-        error_history = update_error_history(state, error_history={"sql_validator_agent:tool:validate_sql_security": str(e)})
+        # error_history = update_error_history(state, error_history={"sql_validator_agent:tool:validate_sql_security": str(e)})
         tool_message = ToolMessage(name="validate_sql_security", content=f"call validate_sql_security error: {e}",
                                    tool_call_id=tool_call_id)
-        return Command(update={"messages": [tool_message], "error_history": error_history, "current_stage": "sql_validation"})
+        return Command(update={"messages": [tool_message], "error_history": [{"sql_validator_agent:tool:validate_sql_security": str(e)}], "current_stage": "sql_validation"})
 
 
 @tool

@@ -18,7 +18,7 @@ from langchain_core.tools import tool
 from langchain_core.messages import HumanMessage, AIMessage, AnyMessage
 from langgraph.prebuilt import create_react_agent
 
-from app.core.state import SQLMessageState, SQLExecutionResult, extract_connection_id
+from app.core.state import SQLMessageState, SQLExecutionResult
 from app.core.llms import get_default_model
 
 
@@ -51,6 +51,7 @@ def execute_sql_query(sql_query: str, connection_id, timeout: int = 30) -> Dict[
         # 执行查询
         result_data = execute_query_with_connection(connection, sql_query)
         print(f"Tool: 执行SQL查询结果: {result_data}; sql: {sql_query}")
+
         return {
             "success": True,
             "data": {
@@ -214,7 +215,6 @@ class SQLExecutorAgent:
         )
     
     def _create_system_prompt(self, state: SQLMessageState, config: RunnableConfig) -> list[AnyMessage]:
-        # connection_id = extract_connection_id(state)
         connection_id = state.get("connection_id", None)
         """创建系统提示"""
         system_msg = f"""你是一个专业的SQL执行专家。
@@ -347,8 +347,6 @@ SQL语句:
             execution_time=execution_time,
             rows_affected=rows_affected
         )
-
-# type: ignore  My80OmFIVnBZMlhrdUp2bG43bmx2TG82UkZoR1VBPT06ZTNlZTRlYjY=
 
 # 创建全局实例
 sql_executor_agent = SQLExecutorAgent()

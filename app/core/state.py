@@ -27,12 +27,14 @@ class SQLValidationResult(BaseModel):
     success: bool
     sql_name: str
     is_valid: bool
+    is_secure: bool
+    security_issues: List[str] = field(default_factory=list)
     errors: List[str] = field(default_factory=list)
     warnings: List[str] = field(default_factory=list)
     suggestions: List[str] = field(default_factory=list)
 
-@dataclass
-class SQLExecutionResult:
+
+class SQLExecutionResult(BaseModel):
     """SQL执行结果"""
     success: bool
     data: Optional[Any] = None
