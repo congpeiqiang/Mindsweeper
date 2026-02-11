@@ -23,7 +23,7 @@ from typing import Dict, Any
 from langchain_core.tools import tool
 from langchain_core.messages import ToolMessage
 
-from app.core.state import SQLMessageState, UserContext, update_query_analysis, update_error_history
+from app.core.state import SQLMessageState, UserContext, update_query_analysis, update_error_history, SchemaInfo
 from app.core.llms import get_default_model
 from app.db.session import SessionLocal
 from app.services.test_to_sql.text2sql_utils import retrieve_relevant_schema, get_value_mappings, analyze_query_with_llm
@@ -48,8 +48,10 @@ def analyze_user_query(query: str, runtime: ToolRuntime[SQLMessageState]) -> Com
         tool_message = ToolMessage(name="analyze_user_query", content=json.dumps(query_analysis, ensure_ascii=False), tool_call_id=tool_call_id)
         return Command(update={"messages":[tool_message], "query_analysis": query_analysis, "current_stage": "schema_analysis"})
     except Exception as e:
-        error_history = update_error_history(state, error_history=[{"schema_agent:tool:analyze_user_query": str(e)}])
-        return Command(update={"error_history": error_history, "current_stage": "schema_analysis"})
+        tool_message = ToolMessage(name="retrieve_database_schema", content="Calling the tool produced no output.",
+                                   tool_call_id=tool_call_id)
+        # error_history = update_error_history(state, error_history=[{"schema_agent:tool:analyze_user_query": str(e)}])
+        return Command(update={"messages":[tool_message], "error_history": [{"schema_agent:tool:analyze_user_query": str(e)}], "current_stage": "schema_analysis"})
 
 @tool
 def retrieve_database_schema(query: str, runtime: ToolRuntime[UserContext, SQLMessageState]) -> Command:
@@ -65,12 +67,12 @@ def retrieve_database_schema(query: str, runtime: ToolRuntime[UserContext, SQLMe
     """
 
     writer = get_stream_writer()
-    connection_id = runtime.context.connection_id
+    connection_id = getattr(runtime.context, "connection_id", None)
     tool_call_id = runtime.tool_call_id
     print(f"Tool of Schema Agent({tool_call_id}): 根据查询分析结果获取相关的数据库表结构信息...", f"connection_id: {connection_id}")
     writer(f"Tool of Schema Agent-writer({tool_call_id}): 根据查询分析结果获取相关的数据库表结构信息...{connection_id}")
     if connection_id is None:
-        return Command(update={"error_history": ["connection_id is not set in runtime context"], "current_stage": "schema_analysis"})
+        return Command(update={"error_history": [{"schema_agent:tool:retrieve_database_schema": "connection_id is not set in runtime context"}], "current_stage": "schema_analysis"})
     state = runtime.state
     try:
         db = SessionLocal()
@@ -87,15 +89,17 @@ def retrieve_database_schema(query: str, runtime: ToolRuntime[UserContext, SQLMe
             tables = schema_context.get("tables", {})
             relationships = schema_context.get("relationships", [])
             # schema_info = update_schema_info(state, schema_info={"tables": tables, "value_mappings": value_mappings, "relationships": relationships})
-            schema_info = {"tables": tables, "value_mappings": value_mappings, "relationships": relationships}
-            tool_message = ToolMessage(name="retrieve_database_schema", content=json.dumps(schema_info, ensure_ascii=False),
+            schema_info = SchemaInfo(tables=tables, value_mappings=value_mappings, relationships=relationships)
+            tool_message = ToolMessage(name="retrieve_database_schema", content=schema_info.model_dump_json(),
                                        tool_call_id=tool_call_id)
             return Command(update={"messages":[tool_message], "schema_info": [schema_info], "current_stage": "schema_analysis"})
         finally:
             db.close()
     except Exception as e:
-        error_history = update_error_history(state, error_history=[{"schema_agent:tool:retrieve_database_schema": str(e)}])
-        return Command(update={"error_history": error_history, "current_stage": "schema_analysis"})
+        tool_message = ToolMessage(name="retrieve_database_schema", content="Calling the tool produced no output.",
+                                       tool_call_id=tool_call_id)
+        # error_history = update_error_history(state, error_history=[{"schema_agent:tool:retrieve_database_schema": str(e)}])
+        return Command(update={"messages":[tool_message], "error_history": [{"schema_agent:tool:retrieve_database_schema": str(e)}], "current_stage": "schema_analysis"})
 
 
 @tool

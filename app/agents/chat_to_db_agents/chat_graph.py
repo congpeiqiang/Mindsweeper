@@ -67,10 +67,9 @@ class IntelligentSQLGraph:
                 max_retries=3,
                 error_history=[]
             )
-
             # 委托给supervisor处理
             result = await self.supervisor_agent.supervise(initial_state, user_context=UserContext(connection_id=connection_id))
-
+            print(f"Supervisor返回结果: {result}")
             if result.get("success"):
                 return {
                     "success": True,
@@ -81,7 +80,8 @@ class IntelligentSQLGraph:
                 return {
                     "success": False,
                     "error": result.get("error"),
-                    "final_stage": "error"
+                    "final_stage":  result.get("final_stage", "error"),
+                    "result": result
                 }
 
         except Exception as e:

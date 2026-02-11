@@ -11,15 +11,14 @@ from typing import Dict, Any, List, Optional, Literal, NotRequired, TypedDict, R
 from dataclasses import dataclass, field
 
 from langchain.agents import AgentState
-from langchain.agents.middleware.types import JumpTo, PrivateStateAttr, OmitFromInput, ResponseT
-from langchain_core.messages import HumanMessage, AnyMessage, BaseMessage
+from langchain_core.messages import BaseMessage
 from langgraph.graph import add_messages
 
+from pydantic import BaseModel
 
-@dataclass
-class SchemaInfo:
+class SchemaInfo(BaseModel):
     """数据库模式信息"""
-    tables: Dict[str, Any] = field(default_factory=dict)
+    tables: List[Dict[str, Any]] = field(default_factory=list)
     relationships: List[Dict[str, Any]] = field(default_factory=list)
     value_mappings: Dict[str, Dict[str, str]] = field(default_factory=dict)
 
@@ -49,10 +48,10 @@ class SQLMessageState(AgentState):
     query_analysis: Optional[Dict[str, Any]]
 
     # 模式信息
-    schema_info: Annotated[List[Optional[SchemaInfo]], operator.add]
+    schema_info: Annotated[list[SchemaInfo], operator.add]
 
     # 生成的SQL
-    generated_sql: Annotated[List[Optional[str]], operator.add]
+    generated_sql: Annotated[list[str], operator.add]
 
     # SQL验证结果
     validation_result: Annotated[Optional[SQLValidationResult], operator.add]
@@ -81,17 +80,16 @@ class SQLMessageState(AgentState):
     # # 代理间通信
     # agent_messages: List[Dict[str, Any]]
 
-    messages: Annotated[List[BaseMessage], add_messages]
+    messages: Annotated[list[BaseMessage], add_messages]
     # 代理间通信
-    agent_messages: Annotated[List[Dict[str, Any]], operator.add]
+    agent_messages: Annotated[list[Dict[str, Any]], operator.add]
 
     # 错误历史
-    error_history: Annotated[List[Dict[str, Any]], operator.add]
+    error_history: Annotated[list[Dict[str, Any]], operator.add]
 
 from pydantic import BaseModel
 
 
-@dataclass
 class UserContext(BaseModel):
     connection_id: int
 

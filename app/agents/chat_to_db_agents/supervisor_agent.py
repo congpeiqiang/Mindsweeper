@@ -305,18 +305,21 @@ class SupervisorAgent:
             result = await self.supervisor.ainvoke(
                 state,
                 config={"recursion_limit": 16},
-                context=user_context)
+                context=user_context
+            )
             print("supervisor.ainvoke result: \n", result)
             return {
                 "success": True,
                 "result": result
             }
         except NotImplementedError as e:
+            print(e)
             return {
                 "success": False,
                 "error": str(e)
             }
         except Exception as e:
+            print(e)
             return {
                 "success": False,
                 "error": str(e)
