@@ -69,7 +69,7 @@ class IntelligentSQLGraph:
             )
 
             # 委托给supervisor处理
-            result = await self.supervisor_agent.supervise(initial_state, user_context={"connection_id": connection_id})
+            result = await self.supervisor_agent.supervise(initial_state, user_context=UserContext(connection_id=connection_id))
 
             if result.get("success"):
                 return {

@@ -6,7 +6,7 @@ pip install langgraph-supervisor
 from langchain.agents import create_agent
 from langchain.messages  import  RemoveMessage, HumanMessage
 from langchain_core.messages import AIMessage, ToolMessage
-from langchain_core.tools import tool
+from langchain.tools import tool
 from langgraph.prebuilt import ToolRuntime
 from langgraph.types import Command
 
@@ -50,7 +50,7 @@ class SupervisorAgent:
         # from app.agents.chat_to_db_agents.error_recovery_agent import error_recovery_agent
         # from app.agents.chat_to_db_agents.chart_generator_agent import chart_generator_agent
 
-        @tool(name_or_callable="schema_agent")
+        @tool("schema_agent")
         async def schema_agent_tool(request: str, runtime: ToolRuntime[UserContext]) -> Command:
             """
             分析用户查询，获取相关数据库表结构

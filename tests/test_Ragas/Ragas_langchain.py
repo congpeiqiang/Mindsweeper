@@ -6,7 +6,7 @@
 # @Software: PyCharm
 from langchain.agents import create_agent
 from langchain.agents.middleware import dynamic_prompt, ModelRequest
-from langchain_core.messages import HumanMessage
+from langchain.messages import HumanMessage
 from langchain_deepseek import ChatDeepSeek
 from langchain_ollama import OllamaEmbeddings
 from pymilvus import MilvusClient

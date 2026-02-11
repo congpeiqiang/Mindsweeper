@@ -130,3 +130,6 @@ def generate_parsing_report(document, output_dir):
 
 # 使用示例
 advanced_pdf_parsing("sample.pdf", "parsed_output")
+
+
+from langchain_classic.retrievers import MultiQueryRetriever

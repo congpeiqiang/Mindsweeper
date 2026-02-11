@@ -75,7 +75,6 @@ def validate_sql_syntax(sql_query: str, db_type: str = "mysql") -> Dict[str, Any
         for keyword in dangerous_keywords:
             if keyword in sql_upper:
                 errors.append(f"包含危险操作: {keyword}")
-# fmt: off  MC80OmFIVnBZMlhrdUp2bG43bmx2TG82U1dsalZnPT06ZWI4NGYxNDk=
         
         # 检查是否有SELECT语句
         if 'SELECT' not in sql_upper:
@@ -166,10 +165,8 @@ def validate_sql_performance(sql_query: str, schema_info: Dict[str, Any] = None)
     try:
         performance_issues = []
         suggestions = []
-# type: ignore  MS80OmFIVnBZMlhrdUp2bG43bmx2TG82U1dsalZnPT06ZWI4NGYxNDk=
         
         sql_upper = sql_query.upper()
-# pylint: disable  Mi80OmFIVnBZMlhrdUp2bG43bmx2TG82U1dsalZnPT06ZWI4NGYxNDk=
         
         # 检查是否使用SELECT *
         if re.search(r'SELECT\s+\*', sql_upper):
@@ -283,7 +280,6 @@ class ParallelSQLValidatorAgent:
 
         # 创建代理包装器以兼容supervisor
         self.agent = self.graph  # 直接使用graph作为agent
-# type: ignore  My80OmFIVnBZMlhrdUp2bG43bmx2TG82U1dsalZnPT06ZWI4NGYxNDk=
     
     def _build_parallel_validation_graph(self) -> StateGraph:
         """构建并行验证工作流图"""

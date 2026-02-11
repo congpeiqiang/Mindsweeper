@@ -13,19 +13,8 @@ from dataclasses import dataclass, field
 from langchain.agents import AgentState
 from langchain.agents.middleware.types import JumpTo, PrivateStateAttr, OmitFromInput, ResponseT
 from langchain_core.messages import HumanMessage, AnyMessage, BaseMessage
-from langgraph.channels import EphemeralValue
 from langgraph.graph import add_messages
 
-
-@dataclass
-class SQLExecutionResult:
-    """SQL执行结果"""
-    success: bool
-    data: Optional[Any] = None
-    error: Optional[str] = None
-    execution_time: Optional[float] = None
-    rows_affected: Optional[int] = None
-# pragma: no cover  MC80OmFIVnBZMlhrdUp2bG43bmx2TG82T0dkM2NBPT06YzExYjQyMTU=
 
 @dataclass
 class SchemaInfo:
@@ -42,6 +31,16 @@ class SQLValidationResult:
     errors: List[str] = field(default_factory=list)
     warnings: List[str] = field(default_factory=list)
     suggestions: List[str] = field(default_factory=list)
+
+@dataclass
+class SQLExecutionResult:
+    """SQL执行结果"""
+    success: bool
+    data: Optional[Any] = None
+    error: Optional[str] = None
+    execution_time: Optional[float] = None
+    rows_affected: Optional[int] = None
+
 
 class SQLMessageState(AgentState):
     """增强的SQL消息状态，支持多代理协作"""
@@ -89,8 +88,11 @@ class SQLMessageState(AgentState):
     # 错误历史
     error_history: Annotated[List[Dict[str, Any]], operator.add]
 
+from pydantic import BaseModel
+
+
 @dataclass
-class UserContext(TypedDict):
+class UserContext(BaseModel):
     connection_id: int
 
 

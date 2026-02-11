@@ -65,7 +65,7 @@ def retrieve_database_schema(query: str, runtime: ToolRuntime[UserContext, SQLMe
     """
 
     writer = get_stream_writer()
-    connection_id = runtime.context.get("connection_id", None)
+    connection_id = runtime.context.connection_id
     tool_call_id = runtime.tool_call_id
     print(f"Tool of Schema Agent({tool_call_id}): 根据查询分析结果获取相关的数据库表结构信息...", f"connection_id: {connection_id}")
     writer(f"Tool of Schema Agent-writer({tool_call_id}): 根据查询分析结果获取相关的数据库表结构信息...{connection_id}")
@@ -177,6 +177,7 @@ class SchemaAnalysisAgent:
             state_schema=SQLMessageState,
             model=self.llm,
             tools=self.tools,
+            context_schema=UserContext,
             middleware=[create_system_prompt],
             name=self.name,
         )
