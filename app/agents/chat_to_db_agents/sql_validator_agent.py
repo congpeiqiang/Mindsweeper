@@ -40,7 +40,7 @@ def validate_sql_syntax(sql_query: str, runtime = ToolRuntime) -> Command:
         语法验证结果
     """
     tool_call_id = runtime.tool_call_id
-    print(f"Tool of Validate Sql Syntax({tool_call_id}): 验证SQL语法正确性; {sql_query}")
+    print(f"Tool of Validate Sql Syntax({tool_call_id}): 验证SQL语法正确性;\n sql: {sql_query}")
     state = runtime.state
     try:
         errors = []
@@ -92,8 +92,8 @@ def validate_sql_syntax(sql_query: str, runtime = ToolRuntime) -> Command:
             "errors": errors,
             "warnings": warnings
         })
-        tool_message = ToolMessage(name="validate_sql_syntax", content=str(validation_result_final), tool_call_id=tool_call_id)
-        return Command(update={"messages":[tool_message], "validation_result": validation_result_final, "current_stage": "sql_validation"})
+        tool_message = ToolMessage(name="validate_sql_syntax", content=validation_result_final.model_dump_json(), tool_call_id=tool_call_id)
+        return Command(update={"messages":[tool_message], "validation_result": [validation_result_final], "current_stage": "sql_validation"})
         
     except Exception as e:
         tool_message = ToolMessage(name="validate_sql_syntax", content="Calling the tool produced no output.",
@@ -114,7 +114,7 @@ def validate_sql_security(sql_query: str, runtime:ToolRuntime) -> Command:
         安全性验证结果
     """
     tool_call_id = runtime.tool_call_id
-    print(f"Tool of Sql Validator Agent(validate_sql_security): 验证SQL安全性，检查SQL注入风险;; {sql_query}")
+    print(f"Tool of Sql Validator Agent(validate_sql_security): 验证SQL安全性，检查SQL注入风险; \nsql: {sql_query}")
     state = runtime.state
     try:
         security_issues = []

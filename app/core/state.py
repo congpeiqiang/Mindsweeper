@@ -22,9 +22,9 @@ class SchemaInfo(BaseModel):
     relationships: List[Dict[str, Any]] = field(default_factory=list)
     value_mappings: Dict[str, Dict[str, str]] = field(default_factory=dict)
 
-@dataclass
-class SQLValidationResult:
+class SQLValidationResult(BaseModel):
     """SQL验证结果"""
+    success: bool
     sql_name: str
     is_valid: bool
     errors: List[str] = field(default_factory=list)
