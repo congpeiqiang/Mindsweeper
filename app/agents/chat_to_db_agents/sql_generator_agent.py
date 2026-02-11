@@ -45,7 +45,7 @@ def generate_sql_query(
     print(f"Tool of Sql Generator Agent({tool_call_id}): 根据用户查询和模式信息生成SQL语句")
     state = runtime.state
     schema_info = state.get("schema_info", {}) # 数据库模式信息
-    value_mappings = schema_info.get("value_mappings", None)  # 值映射信息
+    value_mappings = getattr(schema_info, "value_mappings", None)  # 值映射信息
     try:
         # 构建详细的上下文信息
         context = f"""

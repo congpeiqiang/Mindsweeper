@@ -73,7 +73,6 @@ def retrieve_database_schema(query: str, runtime: ToolRuntime[UserContext, SQLMe
     writer(f"Tool of Schema Agent-writer({tool_call_id}): 根据查询分析结果获取相关的数据库表结构信息...{connection_id}")
     if connection_id is None:
         return Command(update={"error_history": [{"schema_agent:tool:retrieve_database_schema": "connection_id is not set in runtime context"}], "current_stage": "schema_analysis"})
-    state = runtime.state
     try:
         db = SessionLocal()
         try:
@@ -90,9 +89,10 @@ def retrieve_database_schema(query: str, runtime: ToolRuntime[UserContext, SQLMe
             relationships = schema_context.get("relationships", [])
             # schema_info = update_schema_info(state, schema_info={"tables": tables, "value_mappings": value_mappings, "relationships": relationships})
             schema_info = SchemaInfo(tables=tables, value_mappings=value_mappings, relationships=relationships)
+            print(f"schema_info: {schema_info}")
             tool_message = ToolMessage(name="retrieve_database_schema", content=schema_info.model_dump_json(),
                                        tool_call_id=tool_call_id)
-            return Command(update={"messages":[tool_message], "schema_info": [schema_info], "current_stage": "schema_analysis"})
+            return Command(update={"messages":[tool_message], "schema_info": schema_info, "current_stage": "schema_analysis"})
         finally:
             db.close()
     except Exception as e:

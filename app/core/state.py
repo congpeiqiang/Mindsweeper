@@ -48,13 +48,13 @@ class SQLMessageState(AgentState):
     query_analysis: Optional[Dict[str, Any]]
 
     # 模式信息
-    schema_info: Annotated[list[SchemaInfo], operator.add]
+    schema_info: Optional[SchemaInfo]
 
     # 生成的SQL
     generated_sql: Annotated[list[str], operator.add]
 
     # SQL验证结果
-    validation_result: Annotated[Optional[SQLValidationResult], operator.add]
+    validation_result: Annotated[list[SQLValidationResult], operator.add]
 
     # 执行结果
     execution_result: Optional[SQLExecutionResult]
