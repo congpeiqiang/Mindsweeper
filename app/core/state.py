@@ -58,7 +58,7 @@ class SQLMessageState(AgentState):
     """增强的SQL消息状态，支持多代理协作"""
 
     # 查询分析结果
-    query_analysis: Optional[Dict[str, Any]]
+    query_analysis: Annotated[list[Dict[str, Any]], operator.add]
 
     # 模式信息
     schema_info: Optional[SchemaInfo]
@@ -104,49 +104,49 @@ class UserContext(BaseModel):
     connection_id: int
 
 
-def update_query_analysis(state: dict, **kwargs):
-    query_analysis_new = kwargs.get("query_analysis", None)
-    if query_analysis_new is not None and "query_analysis" in state and state["query_analysis"] is not None:
-        try:
-            query_analysis_old = state["query_analysis"]
-            query_analysis_old.update(query_analysis_new)
-            return query_analysis_old
-        except Exception as e:
-            print(f"Error updating query_analysis: {e}")
-    else:
-        return query_analysis_new
+# def update_query_analysis(state: dict, **kwargs):
+#     query_analysis_new = kwargs.get("query_analysis", None)
+#     if query_analysis_new is not None and "query_analysis" in state and state["query_analysis"] is not None:
+#         try:
+#             query_analysis_old = state["query_analysis"]
+#             query_analysis_old.update(query_analysis_new)
+#             return query_analysis_old
+#         except Exception as e:
+#             print(f"Error updating query_analysis: {e}")
+#     else:
+#         return query_analysis_new
 
-def update_schema_info(state: dict, **kwargs):
-    schema_info_new = kwargs.get("schema_info", None)
-    if schema_info_new is not None and "schema_info" in state and state["schema_info"] is not None:
-        try:
-            schema_info_old = state["schema_info"]
-            schema_info_old.update(schema_info_new)
-            return schema_info_old
-        except Exception as e:
-            print(f"Error updating query_analysis: {e}")
-    else:
-        return schema_info_new
+# def update_schema_info(state: dict, **kwargs):
+#     schema_info_new = kwargs.get("schema_info", None)
+#     if schema_info_new is not None and "schema_info" in state and state["schema_info"] is not None:
+#         try:
+#             schema_info_old = state["schema_info"]
+#             schema_info_old.update(schema_info_new)
+#             return schema_info_old
+#         except Exception as e:
+#             print(f"Error updating query_analysis: {e}")
+#     else:
+#         return schema_info_new
 
-def update_error_history(state: dict, **kwargs):
-    error_history_new = kwargs.get("error_history", None)
-    if error_history_new is not None and "error_history" in state and isinstance(state["error_history"], list):
-        error_history_old = state["error_history"]
-        error_history_old.append(error_history_new)
-        return error_history_old
-    else:
-        return error_history_new
+# def update_error_history(state: dict, **kwargs):
+#     error_history_new = kwargs.get("error_history", None)
+#     if error_history_new is not None and "error_history" in state and isinstance(state["error_history"], list):
+#         error_history_old = state["error_history"]
+#         error_history_old.append(error_history_new)
+#         return error_history_old
+#     else:
+#         return error_history_new
 
-def update_messages(state: dict, **kwargs):
-    messages_new = kwargs.get("messages", None)
-    if messages_new is not None and "messages" in state and isinstance(state["messages"], list):
-        messages_old = state["messages"]
-        messages_old.append(messages_new)
-        return messages_old
-    elif messages_new is None:
-        return state["messages"]
-    else:
-        return messages_new
+# def update_messages(state: dict, **kwargs):
+#     messages_new = kwargs.get("messages", None)
+#     if messages_new is not None and "messages" in state and isinstance(state["messages"], list):
+#         messages_old = state["messages"]
+#         messages_old.append(messages_new)
+#         return messages_old
+#     elif messages_new is None:
+#         return state["messages"]
+#     else:
+#         return messages_new
 
 # def update_SQLMessageState(state: dict, **kwargs):
 #     query_analysis = kwargs.get("query_analysis", None)

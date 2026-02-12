@@ -56,7 +56,7 @@ class IntelligentSQLGraph:
             initial_state = SQLMessageState(
                 messages=[HumanMessage(query)],
                 agent_messages=[{"supervisor_agent": HumanMessage(query)}],
-                query_analysis=None,
+                query_analysis=[],
                 schema_info=None,
                 generated_sql=[],
                 validation_result=[],

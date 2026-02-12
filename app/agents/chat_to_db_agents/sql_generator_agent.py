@@ -16,9 +16,9 @@ from langgraph.types import Command
 
 from typing import Dict, Any, List
 from langchain_core.tools import tool
-from langchain_core.messages import HumanMessage, AIMessage, ToolMessage
+from langchain_core.messages import HumanMessage, ToolMessage
 from langchain.agents import create_agent
-from app.core.state import SQLMessageState, UserContext, update_error_history
+from app.core.state import SQLMessageState, UserContext
 from app.core.llms import get_default_model
 
 
@@ -112,8 +112,8 @@ SQL: {sample.get('sql', '')}
     except Exception as e:
         tool_message = ToolMessage(name="generate_sql_query", content="Calling the tool produced no output.",
                                    tool_call_id=tool_call_id)
-        error_history = update_error_history(state, error_history=[{"sql_generator_agent:tool:generate_sql_query": str(e)}])
-        return Command(update={"messages": [tool_message], "error_history": error_history, "current_stage": "sql_generation"})
+        # error_history = update_error_history(state, error_history=[{"sql_generator_agent:tool:generate_sql_query": str(e)}])
+        return Command(update={"messages": [tool_message], "error_history": [{"sql_generator_agent:tool:generate_sql_query": str(e)}], "current_stage": "sql_generation"})
 
 @tool
 def generate_sql_with_samples(

@@ -23,7 +23,7 @@ from typing import Dict, Any
 from langchain_core.tools import tool
 from langchain_core.messages import ToolMessage
 
-from app.core.state import SQLMessageState, UserContext, update_query_analysis, update_error_history, SchemaInfo
+from app.core.state import SQLMessageState, UserContext, SchemaInfo
 from app.core.llms import get_default_model
 from app.db.session import SessionLocal
 from app.services.test_to_sql.text2sql_utils import retrieve_relevant_schema, get_value_mappings, analyze_query_with_llm
@@ -43,10 +43,10 @@ def analyze_user_query(query: str, runtime: ToolRuntime[SQLMessageState]) -> Com
     print(f"Tool of Schema Agent({tool_call_id}): 分析用户的自然语言查询，提取关键实体和意图...")
     state = runtime.state
     try:
-        analysis = analyze_query_with_llm(query)
-        query_analysis = update_query_analysis(state, query_analysis={query:analysis})
+        query_analysis = analyze_query_with_llm(query)
+        # query_analysis = update_query_analysis(state, query_analysis={query:analysis})
         tool_message = ToolMessage(name="analyze_user_query", content=json.dumps(query_analysis, ensure_ascii=False), tool_call_id=tool_call_id)
-        return Command(update={"messages":[tool_message], "query_analysis": query_analysis, "current_stage": "schema_analysis"})
+        return Command(update={"messages":[tool_message], "query_analysis": [query_analysis], "current_stage": "schema_analysis"})
     except Exception as e:
         tool_message = ToolMessage(name="retrieve_database_schema", content="Calling the tool produced no output.",
                                    tool_call_id=tool_call_id)
