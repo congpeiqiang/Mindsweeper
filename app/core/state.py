@@ -7,8 +7,10 @@
 授权商业应用请联系微信：huice666
 """
 import operator
+from pydoc import describe
+
 from typing import Dict, Any, List, Optional, Literal, NotRequired, TypedDict, Required, Annotated
-from dataclasses import dataclass, field
+from pydantic import Field
 
 from langchain.agents import AgentState
 from langchain_core.messages import BaseMessage
@@ -18,35 +20,38 @@ from pydantic import BaseModel
 
 class SchemaInfo(BaseModel):
     """数据库模式信息"""
-    tables: List[Dict[str, Any]] = field(default_factory=list)
-    relationships: List[Dict[str, Any]] = field(default_factory=list)
-    value_mappings: Dict[str, Dict[str, str]] = field(default_factory=dict)
+    tables: List[Dict[str, Any]] = Field(default_factory=list)
+    relationships: List[Dict[str, Any]] = Field(default_factory=list)
+    value_mappings: Dict[str, Dict[str, str]] = Field(default_factory=dict)
 
 class SQLValidationResult(BaseModel):
     """SQL验证结果"""
     success: bool
     sql_name: str
-    is_valid: bool = field(default=True)
-    is_secure: bool = field(default=True)
-    security_issues: List[str] = field(default_factory=list)
-    errors: List[str] = field(default_factory=list)
-    warnings: List[str] = field(default_factory=list)
-    suggestions: List[str] = field(default_factory=list)
+    is_valid: bool = Field(default=True)
+    is_secure: bool = Field(default=True)
+    security_issues: List[str] = Field(default_factory=list)
+    errors: List[str] = Field(default_factory=list)
+    warnings: List[str] = Field(default_factory=list)
+    suggestions: List[str] = Field(default_factory=list)
 
 
 class SQLExecutionResult(BaseModel):
     """SQL执行结果"""
     success: bool
-    data: Optional[Any] = None
-    error: Optional[str] = None
-    execution_time: Optional[float] = None
-    rows_affected: Optional[int] = None
-    formatted_result: Optional[str] = None
-    format_type: Optional[str] = None
-    performance_rating: Optional[str] = None
+    data: Optional[Any] = Field(default=None, description="sql执行结果数据")
+    error: Optional[str] = Field(default=None)
+    execution_time: Optional[float] = Field(default=None)
+    rows_affected: Optional[int] = Field(default=None)
+    formatted_result: Optional[str] = Field(default=None)
+    format_type: Optional[str] = Field(default=None)
+    performance_rating: Optional[str] = Field(default=None)
     original_data: data
-    row_count: Optional[int] = None
-    suggestions: Optional[list] = None
+    row_count: Optional[int] = Field(default=None)
+    suggestions: Optional[list] = []
+
+    class Config:
+        arbitrary_types_allowed = True
 
 
 class SQLMessageState(AgentState):
@@ -84,9 +89,6 @@ class SQLMessageState(AgentState):
         "error_recovery",
         "completed"
     ]
-    # messages: List[BaseMessage]
-    # # 代理间通信
-    # agent_messages: List[Dict[str, Any]]
 
     messages: Annotated[list[BaseMessage], add_messages]
     # 代理间通信

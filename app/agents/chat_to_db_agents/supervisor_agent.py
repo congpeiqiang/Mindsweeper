@@ -113,8 +113,8 @@ class SupervisorAgent:
                  "schema_info": state["schema_info"],
                  "query_analysis": state["query_analysis"],
                  "generated_sql": state["generated_sql"],
-                 "validation_result": state["validation_result"],
-                 "execution_result": state["execution_result"],
+                 # "validation_result": state["validation_result"],
+                 # "execution_result": state["execution_result"],
                  "sample_retrieval_result": state["sample_retrieval_result"],
                  "retry_count": state["retry_count"],
                  "max_retries": state["max_retries"],
@@ -146,7 +146,7 @@ class SupervisorAgent:
                  "query_analysis": state["query_analysis"],
                  "generated_sql": state["generated_sql"],
                  "validation_result": state["validation_result"],
-                 "execution_result":state["execution_result"],
+                 # "execution_result":state["execution_result"],
                  "sample_retrieval_result": state["sample_retrieval_result"],
                  "retry_count": state["retry_count"],
                  "max_retries": state["max_retries"],
@@ -180,7 +180,7 @@ class SupervisorAgent:
                  "query_analysis": state["query_analysis"],
                  # "generated_sql": state["generated_sql"],
                  "validation_result": state["validation_result"],
-                 "execution_result": state["execution_result"],
+                 # "execution_result": state["execution_result"],
                  "sample_retrieval_result": state["sample_retrieval_result"],
                  "retry_count": state["retry_count"],
                  "max_retries": state["max_retries"],
@@ -215,8 +215,8 @@ class SupervisorAgent:
                  "schema_info": state["schema_info"],
                  "query_analysis": state["query_analysis"],
                  "generated_sql": state["generated_sql"],
-                 "validation_result": state["validation_result"],
-                 "execution_result": state["execution_result"],
+                 # "validation_result": state["validation_result"],
+                 # "execution_result": state["execution_result"],
                  "sample_retrieval_result": state["sample_retrieval_result"],
                  "retry_count": state["retry_count"],
                  "max_retries": state["max_retries"],
@@ -239,9 +239,6 @@ class SupervisorAgent:
             sql_executor_agent_tool,
             chart_generator_agent_tool
         ]
-
-    def pre_modpre_model_hookel_hook(self, state:SQLMessageState):
-        print("哈哈哈哈哈：：：：", type(state))
 
 
     def _create_supervisor(self):

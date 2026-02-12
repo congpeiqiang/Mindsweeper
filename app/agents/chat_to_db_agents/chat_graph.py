@@ -60,7 +60,7 @@ class IntelligentSQLGraph:
                 schema_info=None,
                 generated_sql=[],
                 validation_result=[],
-                execution_result=None,
+                execution_result=[],
                 sample_retrieval_result=None,
                 current_stage="schema_analysis",
                 retry_count=0,

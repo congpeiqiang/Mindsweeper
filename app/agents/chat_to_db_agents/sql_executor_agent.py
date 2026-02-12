@@ -7,7 +7,7 @@ from langchain.agents import create_agent
 from langchain.agents.middleware import dynamic_prompt, ModelRequest
 from langgraph.types import Command
 
-from app.core.state import SQLExecutionResult
+from app.core.state import SQLExecutionResult, SQLMessageState
 
 """
 版权所有 (c) 2023-2026 北京慧测信息技术有限公司(但问智能) 保留所有权利。
@@ -26,7 +26,7 @@ from app.core.llms import get_default_model
 
 
 @tool
-def execute_sql_query(sql_query: str, runtime:ToolRuntime) -> Dict[str, Any]:
+def execute_sql_query(sql_query: str, runtime: ToolRuntime[SQLMessageState]) -> Dict[str, Any]:
     """
     执行SQL查询
 
@@ -39,6 +39,8 @@ def execute_sql_query(sql_query: str, runtime:ToolRuntime) -> Dict[str, Any]:
         查询执行结果
     """
     print("Tool: 执行SQL查询")
+    tool_call_id = runtime.tool_call_id
+    print(f"Tool of Sql Executor Agent({tool_call_id}): 执行SQL查询...")
     try:
         connection_id = getattr(runtime.context, "connection_id", None)
         # 根据connection_id获取数据库连接并执行查询
@@ -69,10 +71,9 @@ def execute_sql_query(sql_query: str, runtime:ToolRuntime) -> Dict[str, Any]:
             "execution_time": 0,  # TODO: 添加执行时间计算
             "rows_affected": len(result_data)
         })
-        tool_call_id = runtime.tool_call_id
         tool_message = ToolMessage(name="validate_sql_syntax", content=sql_execution_result.model_dump_json(),
                                    tool_call_id=tool_call_id)
-        return Command(update={"messages": [tool_message], "execution_result": [SQLExecutionResult],
+        return Command(update={"messages": [tool_message], "execution_result": [sql_execution_result],
                                "current_stage": "sql_execution"})
         # return {
         #     "success": True,
@@ -101,7 +102,7 @@ def execute_sql_query(sql_query: str, runtime:ToolRuntime) -> Dict[str, Any]:
 
 
 @tool
-def analyze_query_performance(sql_query: str, execution_result: Dict[str, Any], runtime:ToolRuntime) -> Dict[str, Any]:
+def analyze_query_performance(sql_query: str, execution_result: Dict[str, Any], runtime: ToolRuntime[SQLMessageState]) -> Dict[str, Any]:
     """
     分析查询性能
     
@@ -113,6 +114,8 @@ def analyze_query_performance(sql_query: str, execution_result: Dict[str, Any], 
         性能分析结果
     """
     print("Tool: 分析查询性能")
+    tool_call_id = runtime.tool_call_id
+    print(f"Tool of Sql Executor Agent({tool_call_id}): 分析查询性能...")
     try:
         execution_time = execution_result.get("execution_time", 0)
         row_count = execution_result.get("rows_affected", 0)
@@ -141,10 +144,9 @@ def analyze_query_performance(sql_query: str, execution_result: Dict[str, Any], 
             "row_count": row_count,
             "suggestions": suggestions
         })
-        tool_call_id = runtime.tool_call_id
         tool_message = ToolMessage(name="validate_sql_syntax", content=sql_execution_result.model_dump_json(),
                                    tool_call_id=tool_call_id)
-        return Command(update={"messages": [tool_message], "execution_result": [SQLExecutionResult],
+        return Command(update={"messages": [tool_message], "execution_result": [sql_execution_result],
                                "current_stage": "sql_execution"})
         
         # return {
@@ -164,7 +166,7 @@ def analyze_query_performance(sql_query: str, execution_result: Dict[str, Any], 
 
 
 @tool
-def format_query_results(runtime:ToolRuntime, execution_result: Dict[str, Any], format_type: str = "table") -> Dict[str, Any]:
+def format_query_results(runtime: ToolRuntime[SQLMessageState], execution_result: Dict[str, Any], format_type: str = "table") -> Dict[str, Any]:
     """
     格式化查询结果
     
@@ -176,6 +178,8 @@ def format_query_results(runtime:ToolRuntime, execution_result: Dict[str, Any], 
         格式化后的结果
     """
     print("Tool: 格式化查询结果")
+    tool_call_id = runtime.tool_call_id
+    print(f"Tool of Sql Executor Agent({tool_call_id}): 格式化查询结果...")
     try:
         if not execution_result.get("success"):
             return execution_result
@@ -233,10 +237,9 @@ def format_query_results(runtime:ToolRuntime, execution_result: Dict[str, Any], 
             "format_type": format_type,
             "original_data": data
         })
-        tool_call_id = runtime.tool_call_id
         tool_message = ToolMessage(name="validate_sql_syntax", content=sql_execution_result.model_dump_json(),
                                    tool_call_id=tool_call_id)
-        return Command(update={"messages": [tool_message], "execution_result": [SQLExecutionResult],
+        return Command(update={"messages": [tool_message], "execution_result": [sql_execution_result],
                                "current_stage": "sql_execution"})
         
         # return {
