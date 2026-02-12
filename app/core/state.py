@@ -41,6 +41,12 @@ class SQLExecutionResult(BaseModel):
     error: Optional[str] = None
     execution_time: Optional[float] = None
     rows_affected: Optional[int] = None
+    formatted_result: Optional[str] = None
+    format_type: Optional[str] = None
+    performance_rating: Optional[str] = None
+    original_data: data
+    row_count: Optional[int] = None
+    suggestions: Optional[list] = None
 
 
 class SQLMessageState(AgentState):
@@ -59,7 +65,7 @@ class SQLMessageState(AgentState):
     validation_result: Annotated[list[SQLValidationResult], operator.add]
 
     # 执行结果
-    execution_result: Optional[SQLExecutionResult]
+    execution_result: Annotated[list[SQLExecutionResult], operator.add]
 
     # 样本检索结果
     sample_retrieval_result: Optional[Dict[str, Any]]

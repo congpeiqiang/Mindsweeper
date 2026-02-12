@@ -5,6 +5,9 @@ SQL执行代理
 
 from langchain.agents import create_agent
 from langchain.agents.middleware import dynamic_prompt, ModelRequest
+from langgraph.types import Command
+
+from app.core.state import SQLExecutionResult
 
 """
 版权所有 (c) 2023-2026 北京慧测信息技术有限公司(但问智能) 保留所有权利。
@@ -16,14 +19,14 @@ from langchain.agents.middleware import dynamic_prompt, ModelRequest
 """
 
 from typing import Dict, Any
-
+from langgraph.prebuilt import ToolRuntime
 from langchain_core.tools import tool
-
+from langchain.messages import ToolMessage
 from app.core.llms import get_default_model
 
 
 @tool
-def execute_sql_query(sql_query: str, connection_id, timeout: int = 30) -> Dict[str, Any]:
+def execute_sql_query(sql_query: str, runtime:ToolRuntime) -> Dict[str, Any]:
     """
     执行SQL查询
 
@@ -37,6 +40,7 @@ def execute_sql_query(sql_query: str, connection_id, timeout: int = 30) -> Dict[
     """
     print("Tool: 执行SQL查询")
     try:
+        connection_id = getattr(runtime.context, "connection_id", None)
         # 根据connection_id获取数据库连接并执行查询
         from app.services.test_to_sql.db_service import get_db_connection_by_id, execute_query_with_connection
 
@@ -51,30 +55,53 @@ def execute_sql_query(sql_query: str, connection_id, timeout: int = 30) -> Dict[
         # 执行查询
         result_data = execute_query_with_connection(connection, sql_query)
         print(f"Tool: 执行SQL查询结果: {result_data}; \nsql: {sql_query}")
-
-        return {
+        """
+        success: bool
+    data: Optional[Any] = None
+    error: Optional[str] = None
+    execution_time: Optional[float] = None
+    rows_affected: Optional[int] = None
+        """
+        sql_execution_result = SQLExecutionResult(**{
             "success": True,
-            "data": {
-                "columns": list(result_data[0].keys()) if result_data else [],
-                "data": [list(row.values()) for row in result_data],
-                "row_count": len(result_data),
-                "column_count": len(result_data[0].keys()) if result_data else 0
-            },
+            "data": result_data,
             "error": None,
             "execution_time": 0,  # TODO: 添加执行时间计算
             "rows_affected": len(result_data)
-        }
+        })
+        tool_call_id = runtime.tool_call_id
+        tool_message = ToolMessage(name="validate_sql_syntax", content=sql_execution_result.model_dump_json(),
+                                   tool_call_id=tool_call_id)
+        return Command(update={"messages": [tool_message], "execution_result": [SQLExecutionResult],
+                               "current_stage": "sql_execution"})
+        # return {
+        #     "success": True,
+        #     "data": {
+        #         "columns": list(result_data[0].keys()) if result_data else [],
+        #         "data": [list(row.values()) for row in result_data],
+        #         "row_count": len(result_data),
+        #         "column_count": len(result_data[0].keys()) if result_data else 0
+        #     },
+        #     "error": None,
+        #     "execution_time": 0,  # TODO: 添加执行时间计算
+        #     "rows_affected": len(result_data)
+        # }
 
     except Exception as e:
-        return {
-            "success": False,
-            "error": str(e),
-            "execution_time": 0
-        }
+        tool_message = ToolMessage(name="execute_sql_query", content="Calling the tool produced no output.",
+                                   tool_call_id=tool_call_id)
+        return Command(update={"messages": [tool_message],
+                               "error_history": [{"sql_executor_agent:tool:execute_sql_query": str(e)}],
+                               "current_stage": "sql_execution"})
+        # return {
+        #     "success": False,
+        #     "error": str(e),
+        #     "execution_time": 0
+        # }
 
 
 @tool
-def analyze_query_performance(sql_query: str, execution_result: Dict[str, Any]) -> Dict[str, Any]:
+def analyze_query_performance(sql_query: str, execution_result: Dict[str, Any], runtime:ToolRuntime) -> Dict[str, Any]:
     """
     分析查询性能
     
@@ -105,24 +132,39 @@ def analyze_query_performance(sql_query: str, execution_result: Dict[str, Any]) 
             suggestions.append("查询执行时间较长，考虑添加索引或优化查询")
         if row_count > 10000:
             suggestions.append("返回行数较多，考虑添加分页或更严格的过滤条件")
-        
-        return {
+
+        sql_execution_result = SQLExecutionResult(**{
             "success": True,
+            "error": None,
             "performance_rating": performance_rating,
             "execution_time": execution_time,
             "row_count": row_count,
             "suggestions": suggestions
-        }
+        })
+        tool_call_id = runtime.tool_call_id
+        tool_message = ToolMessage(name="validate_sql_syntax", content=sql_execution_result.model_dump_json(),
+                                   tool_call_id=tool_call_id)
+        return Command(update={"messages": [tool_message], "execution_result": [SQLExecutionResult],
+                               "current_stage": "sql_execution"})
+        
+        # return {
+        #     "success": True,
+        #     "performance_rating": performance_rating,
+        #     "execution_time": execution_time,
+        #     "row_count": row_count,
+        #     "suggestions": suggestions
+        # }
         
     except Exception as e:
-        return {
-            "success": False,
-            "error": str(e)
-        }
+        tool_message = ToolMessage(name="analyze_query_performance", content="Calling the tool produced no output.",
+                                   tool_call_id=tool_call_id)
+        return Command(update={"messages": [tool_message],
+                               "error_history": [{"sql_executor_agent:tool:analyze_query_performance": str(e)}],
+                               "current_stage": "sql_execution"})
 
 
 @tool
-def format_query_results(execution_result: Dict[str, Any], format_type: str = "table") -> Dict[str, Any]:
+def format_query_results(runtime:ToolRuntime, execution_result: Dict[str, Any], format_type: str = "table") -> Dict[str, Any]:
     """
     格式化查询结果
     
@@ -183,19 +225,33 @@ def format_query_results(execution_result: Dict[str, Any], format_type: str = "t
         
         else:
             formatted_result = str(data)
-        
-        return {
+
+        sql_execution_result = SQLExecutionResult(**{
             "success": True,
+            "error": None,
             "formatted_result": formatted_result,
             "format_type": format_type,
             "original_data": data
-        }
+        })
+        tool_call_id = runtime.tool_call_id
+        tool_message = ToolMessage(name="validate_sql_syntax", content=sql_execution_result.model_dump_json(),
+                                   tool_call_id=tool_call_id)
+        return Command(update={"messages": [tool_message], "execution_result": [SQLExecutionResult],
+                               "current_stage": "sql_execution"})
+        
+        # return {
+        #     "success": True,
+        #     "formatted_result": formatted_result,
+        #     "format_type": format_type,
+        #     "original_data": data
+        # }
         
     except Exception as e:
-        return {
-            "success": False,
-            "error": str(e)
-        }
+        tool_message = ToolMessage(name="format_query_results", content="Calling the tool produced no output.",
+                                   tool_call_id=tool_call_id)
+        return Command(update={"messages": [tool_message],
+                               "error_history": [{"sql_executor_agent:tool:format_query_results": str(e)}],
+                               "current_stage": "sql_execution"})
 
 
 @dynamic_prompt
