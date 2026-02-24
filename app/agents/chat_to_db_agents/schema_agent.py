@@ -41,16 +41,13 @@ def analyze_user_query(query: str, runtime: ToolRuntime[SQLMessageState]) -> Com
     """
     tool_call_id = runtime.tool_call_id
     print(f"Tool of Schema Agent({tool_call_id}): 分析用户的自然语言查询，提取关键实体和意图...")
-    state = runtime.state
     try:
         query_analysis = analyze_query_with_llm(query)
-        # query_analysis = update_query_analysis(state, query_analysis={query:analysis})
         tool_message = ToolMessage(name="analyze_user_query", content=json.dumps(query_analysis, ensure_ascii=False), tool_call_id=tool_call_id)
         return Command(update={"messages":[tool_message], "query_analysis": [query_analysis], "current_stage": "schema_analysis"})
     except Exception as e:
         tool_message = ToolMessage(name="retrieve_database_schema", content="Calling the tool produced no output.",
                                    tool_call_id=tool_call_id)
-        # error_history = update_error_history(state, error_history=[{"schema_agent:tool:analyze_user_query": str(e)}])
         return Command(update={"messages":[tool_message], "error_history": [{"schema_agent:tool:analyze_user_query": str(e)}], "current_stage": "schema_analysis"})
 
 @tool
