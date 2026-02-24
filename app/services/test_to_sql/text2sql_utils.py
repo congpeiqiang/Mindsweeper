@@ -448,12 +448,6 @@ def retrieve_relevant_schema(db: Session, connection_id: int, query: str) -> Dic
 
             # 4. 按ID获取表并设置相关性分数
             for table_id, relevance_score in relevant_table_ids:
-                # 确保table_id是整数类型
-                if not isinstance(table_id, int):
-                    try:
-                        table_id = int(table_id)
-                    except (ValueError, TypeError):
-                        continue
 
                 # 查找表信息 - next() + 生成器表达式: 高效遍历列表，找到第一个匹配项即停止,None: 如果没有找到匹配项，返回None而不是抛出异常
                 table_info = next((t for t in all_tables if t["id"] == table_id), None)
