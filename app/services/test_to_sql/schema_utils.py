@@ -279,7 +279,6 @@ def determine_relationship_type(
     if target_table.lower() == 'scores' and source_table.lower() == 'students' and target_column.lower() == 'student_id':
         print(f"[DEBUG] 特殊情况：学生表到学生成绩表的关系，设置为一对多关系")
         return "1-to-N"
-# type: ignore  Mi80OmFIVnBZMlhrdUp2bG43bmx2TG82VWxkR1FRPT06YjEwMDgyMGI=
 
     if target_table.lower() == 'scores' and source_table.lower() == 'courses' and target_column.lower() == 'course_id':
         print(f"[DEBUG] 特殊情况：课程表到学生成绩表的关系，设置为一对多关系")
@@ -319,7 +318,6 @@ def determine_relationship_type(
 
     print(f"[DEBUG] 源列 {source_column} 是主键: {source_is_pk}")
     print(f"[DEBUG] 目标列 {target_column} 是主键: {target_is_pk}")
-# pylint: disable  My80OmFIVnBZMlhrdUp2bG43bmx2TG82VWxkR1FRPT06YjEwMDgyMGI=
 
     # 检查源列是否是外键
     source_is_fk = False
