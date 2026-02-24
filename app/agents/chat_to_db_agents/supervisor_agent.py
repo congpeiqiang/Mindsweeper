@@ -65,16 +65,16 @@ class SupervisorAgent:
             state = runtime.state
             result = await schema_agent.agent.ainvoke(
                 {"messages": [{"role": "user", "content": request}],
-                 "schema_info": state["schema_info"],
-                 "query_analysis": state["query_analysis"],
+                 # "schema_info": state["schema_info"],
+                 # "query_analysis": state["query_analysis"],
                  # "generated_sql": state["generated_sql"],
                  # "validation_result": state["validation_result"],
                  # "execution_result": state["execution_result"],
                  # "sample_retrieval_result": state["sample_retrieval_result"],
                  # "retry_count": state["retry_count"],
                  # "max_retries": state["max_retries"],
-                 "current_stage": state["current_stage"],
-                 "error_history": state["error_history"],
+                 # "current_stage": state["current_stage"],
+                 # "error_history": state["error_history"],
                  },
                 context=user_context
             )
@@ -93,7 +93,8 @@ class SupervisorAgent:
             state["agent_messages"]=[{"supervisor agent call schema agent tool": HumanMessage(request)}, {"schema_agent":result["messages"][-1]}]
             state["messages"]=[ToolMessage(content=result["messages"][-1].content, tool_call_id=tool_call_id)]
             # 更新state，除了agent_messages和messages
-            state.update({k: v for k, v in result.items() if k not in ['messages', 'agent_messages']})
+            # state.update({k: v for k, v in result.items() if k not in ['messages', 'agent_messages']})
+            state.update({k: v for k, v in result.items() if k in ['query_analysis', 'schema_info', 'current_stage', 'error_history']})
             return Command(update=state)
 
         @tool(name_or_callable="sql_generator_agent")
@@ -112,7 +113,7 @@ class SupervisorAgent:
                 {"messages": [{"role": "user", "content": request}],
                  "schema_info": state["schema_info"],
                  "query_analysis": state["query_analysis"],
-                 "generated_sql": state["generated_sql"],
+                 # "generated_sql": state["generated_sql"],
                  # "validation_result": state["validation_result"],
                  # "execution_result": state["execution_result"],
                  "sample_retrieval_result": state["sample_retrieval_result"],
@@ -125,7 +126,8 @@ class SupervisorAgent:
             )
             state["messages"] = [ToolMessage(content=result["messages"][-1].content, tool_call_id=tool_call_id)]
             state["agent_messages"] = [{"supervisor agent call sql generator agent tool": HumanMessage(request)}, {"sql_generator_agent": result["messages"][-1]}]
-            state.update({k: v for k, v in result.items() if k not in ['messages', 'agent_messages']})
+            # state.update({k: v for k, v in result.items() if k not in ['messages', 'agent_messages']})
+            state.update({k: v for k, v in result.items() if k in ['generated_sql', 'current_stage', 'error_history']})
             return Command(update=state)
 
         @tool(name_or_callable="sql_validator_agent")
@@ -145,7 +147,7 @@ class SupervisorAgent:
                  "schema_info": state["schema_info"],
                  "query_analysis": state["query_analysis"],
                  "generated_sql": state["generated_sql"],
-                 "validation_result": state["validation_result"],
+                 # "validation_result": state["validation_result"],
                  # "execution_result":state["execution_result"],
                  "sample_retrieval_result": state["sample_retrieval_result"],
                  "retry_count": state["retry_count"],
@@ -159,7 +161,7 @@ class SupervisorAgent:
             state["messages"] = [ToolMessage(content=result["messages"][-1].content, tool_call_id=tool_call_id)]
             state["agent_messages"] = [{"supervisor agent call sql generator agent tool": HumanMessage(request)},
                                        {"sql_generator_agent": result["messages"][-1]}]
-            state.update({k: v for k, v in result.items() if k not in ['messages', 'agent_messages']})
+            state.update({k: v for k, v in result.items() if k in ['validation_result', 'current_stage', 'error_history']})
             return Command(update=state)
 
         @tool(name_or_callable="sql_executor_agent")
@@ -192,7 +194,8 @@ class SupervisorAgent:
             state["messages"] = [ToolMessage(content=result["messages"][-1].content, tool_call_id=tool_call_id)]
             state["agent_messages"] = [{"supervisor agent call sql generator agent tool": HumanMessage(request)},
                                        {"sql_generator_agent": result["messages"][-1]}]
-            state.update({k: v for k, v in result.items() if k not in ['messages', 'agent_messages']})
+            # state.update({k: v for k, v in result.items() if k not in ['messages', 'agent_messages']})
+            state.update({k: v for k, v in result.items() if k in ['execution_result', 'current_stage', 'error_history']})
             return Command(update=state)
 
         @tool(name_or_callable="chart_generator_agent")

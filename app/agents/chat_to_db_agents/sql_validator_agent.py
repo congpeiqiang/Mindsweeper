@@ -227,8 +227,7 @@ def validate_sql_performance(sql_query: str, runtime:ToolRuntime) -> Command:
     except Exception as e:
         tool_message = ToolMessage(name="validate_sql_performance", content="Calling the tool produced no output.",
                                    tool_call_id=tool_call_id)
-        error_history = update_error_history(state, error_history={"sql_validator_agent:tool:validate_sql_performance": str(e)})
-        return Command(update={"messages": [tool_message], "error_history": error_history, "current_stage": "sql_validation"})
+        return Command(update={"messages": [tool_message], "error_history": [{"sql_validator_agent:tool:validate_sql_performance": str(e)}], "current_stage": "sql_validation"})
 
 
 @tool

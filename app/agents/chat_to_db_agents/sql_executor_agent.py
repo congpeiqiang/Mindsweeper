@@ -32,8 +32,6 @@ def execute_sql_query(sql_query: str, runtime: ToolRuntime[SQLMessageState]) -> 
 
     Args:
         sql_query: SQL查询语句
-        connection_id: 数据库连接ID
-        timeout: 超时时间（秒）
 
     Returns:
         查询执行结果
