@@ -10,7 +10,6 @@
 from sqlalchemy import Column, Integer, String, DateTime, ForeignKey, Text
 from sqlalchemy.sql import func
 from sqlalchemy.orm import relationship
-# fmt: off  MC8yOmFIVnBZMlhrdUp2bG43bmx2TG82TUcxU1dRPT06NjlmMzllZjA=
 
 from app.db.base_class import Base
 
