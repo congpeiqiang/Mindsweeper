@@ -84,7 +84,6 @@ def retrieve_database_schema(query: str, runtime: ToolRuntime[UserContext, SQLMe
             value_mappings = get_value_mappings(db, schema_context)
             tables = schema_context.get("tables", {})
             relationships = schema_context.get("relationships", [])
-            # schema_info = update_schema_info(state, schema_info={"tables": tables, "value_mappings": value_mappings, "relationships": relationships})
             schema_info = SchemaInfo(tables=tables, value_mappings=value_mappings, relationships=relationships)
             tool_message = ToolMessage(name="retrieve_database_schema", content=schema_info.model_dump_json(),
                                        tool_call_id=tool_call_id)
@@ -94,7 +93,6 @@ def retrieve_database_schema(query: str, runtime: ToolRuntime[UserContext, SQLMe
     except Exception as e:
         tool_message = ToolMessage(name="retrieve_database_schema", content="Calling the tool produced no output.",
                                        tool_call_id=tool_call_id)
-        # error_history = update_error_history(state, error_history=[{"schema_agent:tool:retrieve_database_schema": str(e)}])
         return Command(update={"messages":[tool_message], "error_history": [{"schema_agent:tool:retrieve_database_schema": str(e)}], "current_stage": "schema_analysis"})
 
 
