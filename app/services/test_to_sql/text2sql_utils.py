@@ -149,8 +149,8 @@ def find_relevant_tables_semantic(query: str, query_analysis: Dict[str, Any],
         model_client = get_default_model()
         # 直接使用model_client以保持一致性
         response = model_client.invoke(
-            [{"role": "user", "content": prompt},
-             {"role": "system", "content": "你是一名数据库专家，擅长根据自然语言分析相关的数据库表及列"}]
+            [{"role": "system", "content": "你是一名数据库专家，擅长根据自然语言分析相关的数据库表及列"},
+             {"role": "user", "content": prompt}]
         )
         response_text = response.content
         # 提取并解析JSON响应
