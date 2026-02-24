@@ -242,8 +242,8 @@ def filter_expanded_tables_with_llm(query: str, query_analysis: Dict[str, Any],
         model_client = get_default_model()
         # 直接使用model_client以保持一致性
         response = model_client.invoke(
-            [{"role": "user", "content": prompt},
-             {"role": "system", "content": "你是一名数据库专家，擅长分析自然语言查询与相关的数据库表是否有关"}]
+            [{"role": "system", "content": "你是一名数据库专家，擅长分析自然语言查询与相关的数据库表是否有关"},
+             {"role": "user", "content": prompt}]
         )
         response_text = response.content
 
